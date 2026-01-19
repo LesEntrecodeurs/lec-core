@@ -1,0 +1,12 @@
+{
+	"name": "@lec/tsup-config",
+	"version": "0.0.1",
+	"private": true,
+	"files": [
+		"index.js"
+	],
+	"license": "MIT",
+	"devDependencies": {
+		"tsup": "^8.5.1"
+	}
+}
