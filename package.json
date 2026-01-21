@@ -14,10 +14,14 @@
 		"postinstall": "husky && manypkg check",
 		"validate": "yarn lint-staged",
 		"prepare": "husky",
-		"fix-deps": "manypkg fix"
+		"fix-deps": "manypkg fix",
+		"changeset": "changeset",
+		"version-packages": "changeset version",
+		"release": "turbo build lint test && changeset version && changeset publish"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.11",
+		"@changesets/cli": "^2.29.8",
 		"@commitlint/cli": "^20.3.1",
 		"@commitlint/config-conventional": "^20.3.1",
 		"@manypkg/cli": "^0.25.1",
