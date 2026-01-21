@@ -1351,6 +1351,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@lec/alert@workspace:packages/alert-manager"
   dependencies:
+    "@lec/ddd-tools": "workspace:*"
     "@lec/tsup-config": "workspace:*"
     "@lec/typescript-config": "workspace:*"
     "@react-email/components": "npm:^1.0.5"
@@ -1365,7 +1366,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@lec/ddd-tools@workspace:packages/ddd-tools":
+"@lec/ddd-tools@workspace:*, @lec/ddd-tools@workspace:packages/ddd-tools":
   version: 0.0.0-use.local
   resolution: "@lec/ddd-tools@workspace:packages/ddd-tools"
   dependencies:
