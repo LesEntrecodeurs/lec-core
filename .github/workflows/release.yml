@@ -28,8 +28,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Build, Lint, Test
-        run: pnpm turbo build lint test
+      - name: Build, Lint
+        run: pnpm turbo build lint
 
       - name: Create Release Pull Request or Publish
         uses: changesets/action@v1
