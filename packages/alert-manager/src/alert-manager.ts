@@ -1,30 +1,17 @@
 import { Err, Ok, type Result } from "@lec/ddd-tools";
-import { render } from "@react-email/render";
-import type React from "react";
-import { NodemailerClient, type NodemailerConfig } from "./nodemailer";
-import { CriticalAlertEmail } from "./templates/critical-alert-email";
 import {
 	type Alert,
 	AlertError,
-	type AlertSeverity,
-	type AlertType,
+	type AlertProvider,
+	type AlertSendResult,
 } from "./types";
 
 /**
  * Configuration for AlertManager
  */
 export interface AlertManagerConfig {
-	/** SMTP configuration */
-	smtp: NodemailerConfig;
-	/** Default sender email address (can be overridden per send) */
-	fromEmail?: string;
-	/** Admin email to receive alerts */
-	adminEmail: string;
-	/** Retry configuration */
-	retry?: {
-		maxAttempts?: number;
-		delays?: number[]; // Exponential backoff in ms
-	};
+	/** Alert providers to use */
+	providers: AlertProvider[];
 	/** Alert thresholds configuration */
 	thresholds?: {
 		/** Number of failures before triggering REPEATED_FAILURES alert */
@@ -37,20 +24,12 @@ export interface AlertManagerConfig {
 }
 
 /**
- * Email sent result
+ * Result of sending alerts to multiple providers
  */
-export interface EmailSent {
-	id: string;
-	timestamp: Date;
+export interface MultiProviderResult {
+	successful: AlertSendResult[];
+	failed: Array<{ provider: string; error: AlertError }>;
 }
-
-/**
- * Default retry configuration
- */
-const DEFAULT_RETRY_CONFIG = {
-	maxAttempts: 3,
-	delays: [1000, 2000, 4000],
-};
 
 /**
  * Default alert thresholds
@@ -66,42 +45,33 @@ const DEFAULT_THRESHOLDS = {
 const DEFAULT_DEBOUNCE_WINDOW_MS = 5 * 60 * 1000;
 
 /**
- * AlertManager - handles sending alert emails via Nodemailer
+ * AlertManager - handles sending alerts via multiple providers
  *
  * @example
  * ```typescript
- * // Initialize once at app startup
+ * import { AlertManager } from "./alert-manager";
+ * import { EmailProvider, DiscordProvider } from "./providers";
+ *
+ * // Initialize with multiple providers
  * AlertManager.initialize({
- *   smtp: {
- *     host: "smtp.gmail.com",
- *     port: 587,
- *     secure: false,
- *     auth: {
- *       user: "your-email@gmail.com",
- *       pass: "your-app-password",
- *     },
- *   },
- *   fromEmail: "alerts@yourcompany.com", // optional default
- *   adminEmail: "admin@yourcompany.com",
- *   // Optional: customize thresholds
+ *   providers: [
+ *     new EmailProvider({
+ *       smtp: { host: "smtp.gmail.com", port: 587, auth: { user: "...", pass: "..." } },
+ *       fromEmail: "alerts@company.com",
+ *       toEmail: "admin@company.com",
+ *     }),
+ *     new DiscordProvider({
+ *       webhookUrl: "https://discord.com/api/webhooks/...",
+ *       username: "Alert Bot",
+ *     }),
+ *   ],
  *   thresholds: {
- *     failuresInWindow: 5,    // failures before alert
- *     timeWindowMinutes: 10,  // time window for counting
- *   },
- *   // Optional: debounce window (default 5 min)
- *   debounceWindowMs: 5 * 60 * 1000,
- *   // Optional: retry config
- *   retry: {
- *     maxAttempts: 3,
- *     delays: [1000, 2000, 4000],
+ *     failuresInWindow: 5,
+ *     timeWindowMinutes: 10,
  *   },
  * });
  *
- * // Access thresholds anywhere
- * const { failuresInWindow, timeWindowMinutes } = AlertManager.getInstance().thresholds;
- * const debounce = AlertManager.getInstance().debounceWindow;
- *
- * // Send alert
+ * // Send alert to all providers
  * await AlertManager.getInstance().sendAlert({
  *   type: AlertType.SYSTEM_ERROR,
  *   severity: AlertSeverity.CRITICAL,
@@ -109,34 +79,25 @@ const DEFAULT_DEBOUNCE_WINDOW_MS = 5 * 60 * 1000;
  *   timestamp: new Date(),
  * });
  *
- * // Or override from per call
- * await AlertManager.getInstance().sendAlert(
- *   { type: AlertType.SYSTEM_ERROR, severity: AlertSeverity.HIGH, ... },
- *   { from: "other-sender@yourcompany.com" }
- * );
+ * // Send to specific provider only
+ * await AlertManager.getInstance().sendAlert(alert, { providers: ["discord"] });
  * ```
  */
 export class AlertManager {
 	private static instance: AlertManager | null = null;
 
-	private readonly mailer: NodemailerClient;
-	private readonly config: AlertManagerConfig;
-	private readonly retryConfig: Required<
-		NonNullable<AlertManagerConfig["retry"]>
-	>;
+	private readonly providers: Map<string, AlertProvider>;
 	private readonly thresholdsConfig: Required<
 		NonNullable<AlertManagerConfig["thresholds"]>
 	>;
 	private readonly debounceWindowMs: number;
 
 	private constructor(config: AlertManagerConfig) {
-		this.config = config;
-		this.mailer = new NodemailerClient(config.smtp);
-		this.retryConfig = {
-			maxAttempts:
-				config.retry?.maxAttempts ?? DEFAULT_RETRY_CONFIG.maxAttempts,
-			delays: config.retry?.delays ?? DEFAULT_RETRY_CONFIG.delays,
-		};
+		this.providers = new Map();
+		for (const provider of config.providers) {
+			this.providers.set(provider.name, provider);
+		}
+
 		this.thresholdsConfig = {
 			failuresInWindow:
 				config.thresholds?.failuresInWindow ??
@@ -151,7 +112,6 @@ export class AlertManager {
 
 	/**
 	 * Initialize the singleton instance with configuration
-	 * Must be called once before using getInstance()
 	 */
 	static initialize(config: AlertManagerConfig): AlertManager {
 		if (AlertManager.instance) {
@@ -160,14 +120,20 @@ export class AlertManager {
 			);
 			return AlertManager.instance;
 		}
+
+		if (config.providers.length === 0) {
+			throw new Error("AlertManager requires at least one provider");
+		}
+
 		AlertManager.instance = new AlertManager(config);
-		console.info("AlertManager initialized");
+		console.info(
+			`AlertManager initialized with providers: ${config.providers.map((c) => c.name).join(", ")}`,
+		);
 		return AlertManager.instance;
 	}
 
 	/**
 	 * Get the singleton instance
-	 * @throws Error if not initialized
 	 */
 	static getInstance(): AlertManager {
 		if (!AlertManager.instance) {
@@ -186,7 +152,7 @@ export class AlertManager {
 	}
 
 	/**
-	 * Reset the singleton instance (useful for testing)
+	 * Reset the singleton instance
 	 */
 	static reset(): void {
 		if (AlertManager.instance) {
@@ -212,377 +178,160 @@ export class AlertManager {
 	}
 
 	/**
-	 * Get retry configuration
+	 * Get list of registered provider names
 	 */
-	get retry(): Readonly<Required<NonNullable<AlertManagerConfig["retry"]>>> {
-		return this.retryConfig;
+	get providerNames(): string[] {
+		return Array.from(this.providers.keys());
 	}
 
 	/**
-	 * Verify SMTP connection is working
+	 * Get a specific provider by name
 	 */
-	async verifyConnection(): Promise<boolean> {
-		return this.mailer.verify();
+	getProvider(name: string): AlertProvider | undefined {
+		return this.providers.get(name);
 	}
 
 	/**
-	 * Send an alert email (single alert)
+	 * Add a new provider at runtime
+	 */
+	addProvider(provider: AlertProvider): void {
+		this.providers.set(provider.name, provider);
+		console.info(`AlertManager: added provider "${provider.name}"`);
+	}
+
+	/**
+	 * Remove a provider at runtime
+	 */
+	removeProvider(name: string): boolean {
+		const provider = this.providers.get(name);
+		if (provider) {
+			provider.close();
+			this.providers.delete(name);
+			console.info(`AlertManager: removed provider "${name}"`);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Send alert to all providers (or specific ones)
 	 */
 	async sendAlert(
 		alert: Alert,
-		options?: { from?: string },
-	): Promise<Result<EmailSent, AlertError>> {
-		return this.sendAlerts([alert], alert.type, alert.severity, options);
+		options?: { providers?: string[] },
+	): Promise<Result<MultiProviderResult, AlertError>> {
+		return this.sendAlerts([alert], options);
 	}
 
 	/**
-	 * Send multiple alerts in one email
+	 * Send multiple alerts to all providers (or specific ones)
 	 */
 	async sendAlerts(
 		alerts: Alert[],
-		alertType: AlertType,
-		severity: AlertSeverity,
-		options?: { from?: string },
-	): Promise<Result<EmailSent, AlertError>> {
-		const startTime = Date.now();
-		const subject = this.getAlertSubject(severity, alertType);
-		const fromEmail = options?.from ?? this.config.fromEmail;
+		options?: { providers?: string[] },
+	): Promise<Result<MultiProviderResult, AlertError>> {
+		const firstAlert = alerts[0];
 
-		if (!fromEmail) {
+		if (!firstAlert) {
 			return Err.of(
-				new AlertError("No from email provided", {
-					alertType,
-					recipient: this.config.adminEmail,
-					context: "Provide fromEmail in config or pass it in options",
+				new AlertError("No alerts to send", {
+					alertType: "UNKNOWN",
+					recipient: "all",
 				}),
 			);
 		}
 
-		console.info(
-			{
-				recipient: this.config.adminEmail,
-				subject,
-				alertType,
-				severity,
-				alertCount: alerts.length,
-			},
-			"sending alert email",
-		);
+		const targetProviders = this.getTargetProviders(options?.providers);
 
-		// Render email template
-		let html: string;
-		try {
-			html = await render(
-				CriticalAlertEmail({
-					alerts,
-					alertType,
-					severity,
-				}) as React.ReactElement,
-			);
-		} catch (error) {
-			console.error(
-				{
-					recipient: this.config.adminEmail,
-					alertType,
-					error: error instanceof Error ? error.message : String(error),
-				},
-				"failed to render alert email template",
-			);
+		if (targetProviders.length === 0) {
 			return Err.of(
-				new AlertError("Failed to render alert email template", {
-					alertType,
-					recipient: this.config.adminEmail,
-					context: error instanceof Error ? error.message : String(error),
+				new AlertError("No valid providers found", {
+					alertType: firstAlert.type,
+					recipient: "none",
+					context: `Requested: ${options?.providers?.join(", ") ?? "all"}`,
 				}),
 			);
 		}
 
-		console.info(
-			{
-				recipient: this.config.adminEmail,
-				htmlLength: html.length,
-			},
-			"alert email template rendered",
-		);
-
-		// Send email with retry logic
-		const result = await this.sendWithRetry({
-			subject,
-			html,
-			alertType,
-			fromEmail,
-		});
-
-		const duration = Date.now() - startTime;
-
-		if (result.isErr()) {
-			console.error(
-				{
-					recipient: this.config.adminEmail,
-					subject,
-					alertType,
-					error: result.error.toJSON(),
-					duration,
-				},
-				"alert email send failed after retries",
-			);
-			return result;
-		}
-
-		console.info(
-			{
-				recipient: this.config.adminEmail,
-				emailId: result.value.id,
-				alertType,
-				duration,
-			},
-			"alert email sent successfully",
-		);
-
-		return result;
-	}
-
-	/**
-	 * Send a custom email (not using alert template)
-	 */
-	async sendCustomEmail(params: {
-		from?: string;
-		to?: string;
-		subject: string;
-		html: string;
-		text?: string;
-	}): Promise<Result<EmailSent, AlertError>> {
-		const recipient = params.to ?? this.config.adminEmail;
-		const fromEmail = params.from ?? this.config.fromEmail;
-
-		if (!fromEmail) {
-			return Err.of(
-				new AlertError("No from email provided", {
-					alertType: "CUSTOM",
-					recipient,
-					context: "Provide fromEmail in config or pass it in params",
-				}),
-			);
-		}
-
-		const { data, error } = await this.mailer.send({
-			from: fromEmail,
-			to: recipient,
-			subject: params.subject,
-			html: params.html,
-			text: params.text,
-		});
-
-		if (error || !data) {
-			return Err.of(
-				new AlertError("Failed to send custom email", {
-					alertType: "CUSTOM",
-					recipient,
-					context: error?.message,
-				}),
-			);
-		}
-
-		return Ok.of({
-			id: data.id,
-			timestamp: new Date(),
-		});
-	}
-
-	/**
-	 * Send email with exponential backoff retry logic
-	 */
-	private async sendWithRetry(params: {
-		subject: string;
-		html: string;
-		alertType: AlertType;
-		fromEmail: string;
-	}): Promise<Result<EmailSent, AlertError>> {
-		const { subject, html, alertType, fromEmail } = params;
-
-		for (let attempt = 0; attempt < this.retryConfig.maxAttempts; attempt++) {
-			try {
-				console.info(
-					{
-						recipient: this.config.adminEmail,
-						alertType,
-						attempt: attempt + 1,
-						maxAttempts: this.retryConfig.maxAttempts,
-					},
-					"attempting alert email send",
-				);
-
-				const { data, error } = await this.mailer.send({
-					from: fromEmail,
-					to: this.config.adminEmail,
-					subject,
-					html,
-				});
-
-				if (error) {
-					const isTransient = this.isTransientError(error);
-
-					if (!isTransient || attempt === this.retryConfig.maxAttempts - 1) {
-						console.error(
-							{
-								recipient: this.config.adminEmail,
-								alertType,
-								error: error.message,
-								attempt: attempt + 1,
-								isTransient,
-							},
-							"alert email send failed",
-						);
-
-						return Err.of(
-							new AlertError("Failed to send alert email", {
-								alertType,
-								recipient: this.config.adminEmail,
-								context: {
-									error: error.message,
-									attempts: attempt + 1,
-								},
-							}),
-						);
-					}
-
-					// Transient error, retry
-					console.warn(
-						{
-							recipient: this.config.adminEmail,
-							alertType,
-							error: error.message,
-							attempt: attempt + 1,
-							nextDelay: this.retryConfig.delays[attempt],
-						},
-						"transient error, retrying alert email",
-					);
-
-					await this.sleep(this.retryConfig.delays[attempt] ?? 1000);
-					continue;
-				}
-
-				// Success
-				if (!data?.id) {
-					return Err.of(
-						new AlertError("Invalid response from mailer", {
-							alertType,
-							recipient: this.config.adminEmail,
-							context: { response: data },
-						}),
-					);
-				}
-
-				return Ok.of({
-					id: data.id,
-					timestamp: new Date(),
-				});
-			} catch (error) {
-				const errorMessage =
-					error instanceof Error ? error.message : String(error);
-
-				if (attempt < this.retryConfig.maxAttempts - 1) {
-					console.warn(
-						{
-							recipient: this.config.adminEmail,
-							alertType,
-							error: errorMessage,
-							attempt: attempt + 1,
-							nextDelay: this.retryConfig.delays[attempt],
-						},
-						"network error, retrying alert email",
-					);
-
-					await this.sleep(this.retryConfig.delays[attempt] ?? 1000);
-					continue;
-				}
-
-				console.error(
-					{
-						recipient: this.config.adminEmail,
-						alertType,
-						error: errorMessage,
-						attempt: attempt + 1,
-					},
-					"alert email send failed after all retries",
-				);
-
-				return Err.of(
-					new AlertError("Failed to send alert email after retries", {
-						alertType,
-						recipient: this.config.adminEmail,
-						context: {
-							error: errorMessage,
-							attempts: attempt + 1,
-						},
-					}),
-				);
-			}
-		}
-
-		return Err.of(
-			new AlertError("Failed to send alert email", {
-				alertType,
-				recipient: this.config.adminEmail,
-				context: { attempts: this.retryConfig.maxAttempts },
-			}),
-		);
-	}
-
-	/**
-	 * Get alert email subject line
-	 */
-	private getAlertSubject(
-		severity: AlertSeverity,
-		alertType: AlertType,
-	): string {
-		const icon = this.getSeverityIcon(severity);
-		return `${icon} ${severity}: ${alertType}`;
-	}
-
-	/**
-	 * Get severity icon for email subject
-	 */
-	private getSeverityIcon(severity: AlertSeverity): string {
-		const icons: Record<AlertSeverity, string> = {
-			CRITICAL: "🚨",
-			HIGH: "⚠️",
-			MEDIUM: "ℹ️",
-			LOW: "📝",
+		const results: MultiProviderResult = {
+			successful: [],
+			failed: [],
 		};
-		return icons[severity] ?? "ℹ️";
-	}
 
-	/**
-	 * Check if error is transient (retryable)
-	 */
-	private isTransientError(error: {
-		message: string;
-		statusCode?: number;
-	}): boolean {
-		if (error.statusCode === 429 || error.statusCode === 503) {
-			return true;
+		// Send to all providers in parallel
+		const promises = targetProviders.map(async (provider) => {
+			const result = await provider.sendBatch(alerts);
+
+			if (result.isOk()) {
+				results.successful.push(result.value);
+			} else {
+				results.failed.push({ provider: provider.name, error: result.error });
+			}
+		});
+
+		await Promise.all(promises);
+
+		// Log results
+		if (results.successful.length > 0) {
+			console.info(
+				`Alert sent successfully to: ${results.successful.map((r) => r.provider).join(", ")}`,
+			);
 		}
 
-		const msg = error.message.toLowerCase();
-		return (
-			msg.includes("timeout") ||
-			msg.includes("network") ||
-			msg.includes("econnrefused")
-		);
+		if (results.failed.length > 0) {
+			console.error(
+				`Alert failed for providers: ${results.failed.map((f) => f.provider).join(", ")}`,
+			);
+		}
+
+		// Return error only if ALL providers failed
+		if (results.successful.length === 0) {
+			return Err.of(
+				new AlertError("Failed to send alert to any provider", {
+					alertType: firstAlert.type,
+					recipient: "all",
+					context: results.failed.map((f) => ({
+						provider: f.provider,
+						error: f.error.message,
+					})),
+				}),
+			);
+		}
+
+		return Ok.of(results);
 	}
 
 	/**
-	 * Sleep utility
+	 * Verify all providers connections
 	 */
-	private sleep(ms: number): Promise<void> {
-		return new Promise((resolve) => setTimeout(resolve, ms));
+	async verifyProviders(): Promise<Map<string, boolean>> {
+		const results = new Map<string, boolean>();
+
+		for (const [name, provider] of this.providers) {
+			const isConnected = await provider.verify();
+			results.set(name, isConnected);
+		}
+
+		return results;
 	}
 
 	/**
-	 * Close the mailer connection
+	 * Close all providers
 	 */
 	close(): void {
-		this.mailer.close();
+		for (const provider of this.providers.values()) {
+			provider.close();
+		}
+		this.providers.clear();
+	}
+
+	private getTargetProviders(providerNames?: string[]): AlertProvider[] {
+		if (!providerNames || providerNames.length === 0) {
+			return Array.from(this.providers.values());
+		}
+
+		return providerNames
+			.map((name) => this.providers.get(name))
+			.filter((provider): provider is AlertProvider => provider !== undefined);
 	}
 }
