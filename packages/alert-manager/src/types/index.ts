@@ -1,4 +1,4 @@
-import { ErrorBase } from "@lec/ddd-tools";
+import { ErrorBase, type Result } from "@lec/ddd-tools";
 import { z } from "zod";
 
 /**
@@ -85,4 +85,41 @@ export class AlertError extends ErrorBase {
 
 export class MapperError extends ErrorBase {
 	readonly code = "MAPPER_ERROR";
+}
+
+/**
+ * Result of sending an alert
+ */
+export interface AlertSendResult {
+	id: string;
+	timestamp: Date;
+	provider: string;
+}
+
+/**
+ * Interface that all alert providers must implement
+ */
+export interface AlertProvider {
+	/** Unique name of the provider */
+	readonly name: string;
+
+	/**
+	 * Send a single alert
+	 */
+	send(alert: Alert): Promise<Result<AlertSendResult, AlertError>>;
+
+	/**
+	 * Send multiple alerts
+	 */
+	sendBatch(alerts: Alert[]): Promise<Result<AlertSendResult, AlertError>>;
+
+	/**
+	 * Verify the provider connection is working
+	 */
+	verify(): Promise<boolean>;
+
+	/**
+	 * Close/cleanup the provider
+	 */
+	close(): void;
 }
