@@ -1,6 +1,6 @@
 {
-	"name": "@lec/ddd-tools",
-	"version": "2.0.0",
+	"name": "@lec-packages/ddd-tools",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -14,8 +14,8 @@
 		"dev": "tsup --watch"
 	},
 	"devDependencies": {
-		"@lec/tsup-config": "*",
-		"@lec/typescript-config": "*",
+		"@lec-packages/tsup-config": "*",
+		"@lec-packages/typescript-config": "*",
 		"@types/node": "^24.10.1",
 		"tsup": "^8.5.1",
 		"typescript": "~5.9.3"

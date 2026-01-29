@@ -1,5 +1,5 @@
 {
-	"name": "@lec/internal",
+	"name": "@lec-packages/internal",
 	"private": true,
 	"scripts": {
 		"build": "turbo run build",
@@ -11,7 +11,7 @@
 		"format-and-lint": "biome check .",
 		"format-and-lint:fix": "biome check . --write",
 		"format-and-lint:fix:unsafe": "biome check . --write --unsafe",
-		"postinstall": "husky && manypkg check",
+		"postinstall": "husky",
 		"validate": "yarn lint-staged",
 		"prepare": "husky",
 		"fix-deps": "manypkg fix",

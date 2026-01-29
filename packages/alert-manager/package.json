@@ -1,6 +1,6 @@
 {
-	"name": "@lec/alert",
-	"version": "2.0.0",
+	"name": "@lec-packages/alert",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -14,8 +14,8 @@
 		"clean": "rm -rf dist"
 	},
 	"devDependencies": {
-		"@lec/tsup-config": "workspace:*",
-		"@lec/typescript-config": "workspace:*",
+		"@lec-packages/tsup-config": "workspace:*",
+		"@lec-packages/typescript-config": "workspace:*",
 		"@types/bun": "^1.3.5",
 		"@types/nodemailer": "^7",
 		"@types/react": "^18.3.18",
@@ -26,7 +26,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@lec/ddd-tools": "workspace:*",
+		"@lec-packages/ddd-tools": "workspace:*",
 		"@react-email/components": "^1.0.5",
 		"@react-email/render": "^2.0.3",
 		"nodemailer": "^7.0.12",

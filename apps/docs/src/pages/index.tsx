@@ -35,14 +35,14 @@ type PackageItem = {
 
 const packages: PackageItem[] = [
 	{
-		name: "@lec/ddd-tools",
+		name: "@lec-packages/ddd-tools",
 		description:
 			"Primitives DDD : Entity, ValueObject, Result, Command, Repository, Pagination et erreurs typees.",
 		badge: "Domain",
 		href: "/docs/packages/ddd-tools/overview",
 	},
 	{
-		name: "@lec/alert",
+		name: "@lec-packages/alert",
 		description:
 			"Systeme d'alertes multi-providers (Discord, Email) avec detection de pannes et templates React Email.",
 		badge: "Infrastructure",
