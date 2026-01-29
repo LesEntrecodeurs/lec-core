@@ -54,6 +54,12 @@ const config: Config = {
 					position: "left",
 					label: "Packages",
 				},
+				{
+					type: "docSidebar",
+					sidebarId: "guidesSidebar",
+					position: "left",
+					label: "Guides",
+				},
 			],
 		},
 		footer: {
