@@ -50,15 +50,15 @@ const config: Config = {
 			items: [
 				{
 					type: "docSidebar",
-					sidebarId: "packagesSidebar",
-					position: "left",
-					label: "Packages",
-				},
-				{
-					type: "docSidebar",
 					sidebarId: "guidesSidebar",
 					position: "left",
 					label: "Guides",
+				},
+				{
+					type: "docSidebar",
+					sidebarId: "packagesSidebar",
+					position: "left",
+					label: "Packages",
 				},
 			],
 		},
