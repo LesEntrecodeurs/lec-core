@@ -1,0 +1,119 @@
+.heroBanner {
+	padding: 6rem 0;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(135deg, #8048a8 0%, #563072 100%);
+	color: #ffffff;
+}
+
+.heroBanner h1 {
+	font-size: 3rem;
+	font-weight: 800;
+	color: #ffffff;
+}
+
+.heroSubtitle {
+	font-size: 1.4rem;
+	opacity: 0.9;
+	max-width: 600px;
+	margin: 0 auto 2rem;
+	color: #e0d0eb;
+}
+
+.buttons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+}
+
+@media screen and (max-width: 996px) {
+	.heroBanner {
+		padding: 3rem 1rem;
+	}
+
+	.heroBanner h1 {
+		font-size: 2rem;
+	}
+
+	.heroSubtitle {
+		font-size: 1.1rem;
+	}
+}
+
+.features {
+	display: flex;
+	align-items: stretch;
+	padding: 3rem 0;
+	width: 100%;
+}
+
+.featureCard {
+	border: 1px solid var(--ifm-color-emphasis-300);
+	border-radius: 8px;
+	padding: 2rem 1.5rem;
+	height: 100%;
+	transition:
+		border-color 0.2s,
+		box-shadow 0.2s;
+}
+
+.featureCard:hover {
+	border-color: var(--ifm-color-primary);
+	box-shadow: 0 2px 12px rgba(128, 72, 168, 0.15);
+}
+
+.featureIcon {
+	font-size: 2.5rem;
+	margin-bottom: 1rem;
+}
+
+.packageGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 1.5rem;
+}
+
+.packageCard {
+	border: 1px solid var(--ifm-color-emphasis-300);
+	border-radius: 8px;
+	padding: 1.5rem;
+	transition:
+		border-color 0.2s,
+		box-shadow 0.2s;
+	text-decoration: none;
+	color: inherit;
+	display: block;
+}
+
+.packageCard:hover {
+	border-color: var(--ifm-color-primary);
+	box-shadow: 0 2px 12px rgba(128, 72, 168, 0.15);
+	text-decoration: none;
+	color: inherit;
+}
+
+.packageName {
+	font-family: var(--ifm-font-family-monospace);
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+	color: var(--ifm-color-primary);
+}
+
+.packageDesc {
+	font-size: 0.95rem;
+	opacity: 0.85;
+	margin-bottom: 0.75rem;
+}
+
+.packageBadge {
+	display: inline-block;
+	font-size: 0.75rem;
+	padding: 0.15rem 0.5rem;
+	border-radius: 4px;
+	background: var(--ifm-color-primary);
+	color: #ffffff;
+	font-weight: 500;
+}
