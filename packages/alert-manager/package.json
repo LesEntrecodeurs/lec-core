@@ -22,6 +22,9 @@
 		"tsup": "^8.5.1",
 		"typescript": "latest"
 	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"dependencies": {
 		"@lec/ddd-tools": "workspace:*",
 		"@react-email/components": "^1.0.5",
