@@ -1,4 +1,4 @@
-import { Err, Ok, type Result } from "@lec/ddd-tools";
+import { Err, Ok, type Result } from "@lec-packages/ddd-tools";
 import { render } from "@react-email/render";
 import type React from "react";
 import { NodemailerClient, type NodemailerConfig } from "../nodemailer";

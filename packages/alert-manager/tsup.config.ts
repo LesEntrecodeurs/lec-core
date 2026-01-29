@@ -1,3 +1,3 @@
-import config from "@lec/tsup-config";
+import config from "@lec-packages/tsup-config";
 
 export default config;
