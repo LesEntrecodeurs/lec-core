@@ -11,7 +11,7 @@ const config: Config = {
 		v4: true,
 	},
 
-	url: "https://lec-internal.dev",
+	url: "https://lec-internal-docs.vercel.app",
 	baseUrl: "/",
 
 	onBrokenLinks: "throw",
