@@ -1,396 +1,197 @@
-# @lec/alert
+# @lec-packages/alert
 
-Critical alerting system for Ragnar. Monitors worker failures, detects critical errors, and sends grouped email alerts to administrators.
-
-## Features
-
-- **Alert Debouncing**: Groups alerts of the same type within a 5-minute window to prevent spam
-- **Multiple Alert Types**: JOB_FAILURE, REPEATED_FAILURES, RATE_LIMIT, WORKER_DOWN
-- **Severity Levels**: CRITICAL, HIGH, MEDIUM, LOW with color-coded emails
-- **Email Notifications**: Sends alerts via Resend with React Email templates
-- **Failure Detection**: Tracks failure rates and triggers alerts when thresholds are exceeded
-- **Structured Logging**: All alert operations logged with full context
+Systeme d'alertes multi-providers pour surveiller les applications en production. Supporte Discord et Email (SMTP via Nodemailer + React Email) avec detection automatique de pannes repetees.
 
 ## Installation
 
-This package is part of the Ragnar monorepo and is automatically available as a workspace dependency.
-
-```json
-{
-  "dependencies": {
-    "@lec/alert": "workspace:*"
-  }
-}
-```
-
-## Configuration
-
-Add the following environment variables to your `.env`:
-
 ```bash
-# Alert Configuration
-ADMIN_EMAIL=admin@lec.com           # Required: Alert destination email
-ALERT_ENABLED=true                     # Optional: Enable/disable alerting (default: true)
-ALERT_FAILURES_THRESHOLD=5             # Optional: Failures before REPEATED_FAILURES alert (default: 5)
-ALERT_TIME_WINDOW_MINUTES=10           # Optional: Time window for failure counting (default: 10)
-ALERT_WEBHOOK_URL=                     # Optional: Webhook endpoint for alerts
+yarn add @lec-packages/alert
 ```
 
-## Usage
-
-### Basic Alert Sending
+## Quick Start
 
 ```typescript
-import { AlertManager, AlertType, AlertSeverity } from '@lec/alert';
+import {
+  AlertManager,
+  DiscordProvider,
+  EmailProvider,
+  AlertType,
+  AlertSeverity,
+} from "@lec-packages/alert";
 
-// Send a critical alert
-await AlertManager.getInstance().sendAlert({
-  type: AlertType.JOB_FAILURE,
-  severity: AlertSeverity.CRITICAL,
-  workerName: 'digest-worker',
-  timestamp: new Date(),
-  context: {
-    jobId: 'job-123',
-    userId: 'user-456',
-    error: 'OpenAI API timeout',
-  },
-  message: 'Digest generation failed after 3 retries',
-});
-```
+// Initialiser
+AlertManager.initialize();
+const manager = AlertManager.getInstance();
 
-### Worker Integration
-
-Integrate alerts into BullMQ workers:
-
-```typescript
-import { AlertManager, AlertType, AlertSeverity } from '@lec/alert';
-import { Worker } from 'bullmq';
-
-const worker = new Worker('my-queue', processJob, { connection });
-
-worker.on('failed', async (job, err) => {
-  logger.error({ jobId: job?.id, error: err.message }, 'job failed');
-
-  // Send alert on final failure
-  if (job && job.attemptsMade >= (job.opts.attempts || 3)) {
-    await AlertManager.getInstance().sendAlert({
-      type: AlertType.JOB_FAILURE,
-      severity: AlertSeverity.CRITICAL,
-      workerName: 'my-worker',
-      timestamp: new Date(),
-      context: {
-        jobId: job.id,
-        error: err.message,
-        retryCount: job.attemptsMade,
-      },
-      message: `Job failed after ${job.attemptsMade} retries`,
-    });
-  }
-});
-```
-
-### Failure Detection
-
-Track job failures and automatically alert when thresholds are exceeded:
-
-```typescript
-import { FailureDetector } from '@lec/alert';
-
-// Track a job failure
-await FailureDetector.getInstance().trackJobFailure(
-  'job-123',
-  'digest-worker',
-  'OpenAI API timeout'
+// Ajouter des providers
+manager.addProvider(
+  new DiscordProvider({
+    webhookUrl: "https://discord.com/api/webhooks/...",
+    username: "Alert Bot",
+  })
 );
 
-// Automatically sends REPEATED_FAILURES alert if:
-// - 5 failures occur within 10 minutes (configurable)
-```
+manager.addProvider(
+  new EmailProvider({
+    host: "smtp.example.com",
+    port: 587,
+    auth: { user: "alerts@example.com", pass: "..." },
+    from: "alerts@example.com",
+    to: ["admin@example.com"],
+  })
+);
 
-## Alert Types
-
-### JOB_FAILURE
-
-Triggered when a job fails after all retry attempts.
-
-- **Severity**: CRITICAL
-- **When**: Final failure (attemptsMade >= maxAttempts)
-- **Context**: jobId, userId, error, retryCount
-
-### REPEATED_FAILURES
-
-Triggered when a worker exceeds the failure threshold within the time window.
-
-- **Severity**: HIGH
-- **When**: X failures in Y minutes (configurable)
-- **Context**: failureCount, timeWindowMinutes, jobId, error
-
-### RATE_LIMIT
-
-Triggered when an API rate limit is hit (HTTP 429).
-
-- **Severity**: HIGH
-- **When**: Rate limit error detected
-- **Context**: API name, retry-after header
-
-### WORKER_DOWN
-
-Triggered when a worker stops sending heartbeats.
-
-- **Severity**: CRITICAL
-- **When**: No heartbeat in 10 minutes
-- **Context**: Last heartbeat timestamp
-
-## Alert Debouncing
-
-Alerts of the same type are grouped within a 5-minute window:
-
-1. First alert of a type starts a 5-minute timer
-2. Subsequent alerts of the same type are added to the buffer
-3. After 5 minutes, all buffered alerts are sent in a single email
-4. This prevents alert spam during cascading failures
-
-## Email Format
-
-Alert emails include:
-
-- **Header**: Severity-coded banner (red for CRITICAL, yellow for HIGH)
-- **Summary**: Total alert count, alert type, severity
-- **Details**: Each alert with worker, timestamp, message, and context
-- **Action Button**: Link to Bull Board dashboard
-- **Footer**: Response guidance
-
-Example subject lines:
-
-- `🚨 CRITICAL: JOB_FAILURE`
-- `⚠️ HIGH: REPEATED_FAILURES`
-- `ℹ️ MEDIUM: WORKER_DOWN`
-
-## Testing
-
-### Simulate a Job Failure
-
-```typescript
-// Simulate enough retries to trigger alert
-const job = {
-  id: 'test-job',
-  attemptsMade: 3,
-  opts: { attempts: 3 },
-  data: { userId: 'test-user' }
-};
-
-await AlertManager.getInstance().sendAlert({
-  type: AlertType.JOB_FAILURE,
+// Envoyer une alerte
+await manager.sendAlert({
+  type: AlertType.WORKER_DOWN,
   severity: AlertSeverity.CRITICAL,
-  workerName: 'test-worker',
+  workerName: "payment-worker",
+  message: "Le worker de paiement ne repond plus",
   timestamp: new Date(),
-  context: { jobId: job.id },
-  message: 'Test failure',
+  context: {},
 });
-```
-
-### Test Debouncing
-
-```typescript
-// Send multiple alerts quickly
-for (let i = 0; i < 5; i++) {
-  await AlertManager.getInstance().sendAlert({
-    type: AlertType.JOB_FAILURE,
-    severity: AlertSeverity.CRITICAL,
-    workerName: 'test-worker',
-    timestamp: new Date(),
-    context: { jobId: `job-${i}` },
-    message: `Test failure ${i}`,
-  });
-}
-
-// Wait 5 minutes - single grouped email will be sent
 ```
 
 ## Architecture
 
-### Singleton Pattern
+```
+AlertManager (singleton)
+├── DiscordProvider  → Webhooks Discord
+├── EmailProvider    → SMTP via Nodemailer + React Email
+└── ...              → Extensible via l'interface AlertProvider
 
-`AlertManager` uses a singleton pattern to maintain shared state:
-
-- Single alert buffer across all imports
-- Single set of debounce timers
-- Graceful cleanup on process termination
-
-### Error Handling
-
-- Alerts use `Result<T, E>` type for error handling
-- Alert failures are logged but don't throw exceptions
-- System continues operating even if alerting fails
-
-### Dependencies
-
-- `@lec/core` - Alert types, configuration
-- `@lec/email` - Resend client
-- `@lec/logger` - Structured logging
-- `@react-email/components` - Email templates
-- `resend` - Email sending
-
-## Troubleshooting
-
-### Alerts Not Being Sent
-
-1. **Check ADMIN_EMAIL**: Ensure `ADMIN_EMAIL` is set in environment
-2. **Check ALERT_ENABLED**: Ensure `ALERT_ENABLED=true` (default)
-3. **Check Logs**: Search for `"alert created"` and `"alert email sent"` in logs
-4. **Check Resend**: Verify `RESEND_API_KEY` and `FROM_EMAIL` are configured
-
-### Alerts Delayed
-
-- Alerts are debounced by 5 minutes by design
-- First alert of a type starts the timer
-- Grouped email sent after timer expires
-
-### Too Many Alerts
-
-- Increase `ALERT_FAILURES_THRESHOLD` (default: 5)
-- Increase `ALERT_TIME_WINDOW_MINUTES` (default: 10)
-- Fix the root cause of failures
-
-## Alert Response Procedures
-
-### Viewing Failed Jobs in Bull Board
-
-All alert emails include a link to the Bull Board dashboard. Bull Board provides:
-
-- **Real-time Queue Monitoring**: View job counts by status (active, waiting, failed, completed)
-- **Job Details**: Click any job to see full data, error messages, and stack traces
-- **Retry Controls**: Manually retry failed jobs individually or in bulk
-- **Job Logs**: View all attempts and their results
-
-**Access Bull Board:**
-
-1. Click the "View Bull Board Dashboard" button in the alert email
-2. Or navigate directly to: `http://localhost:3001` (development)
-3. Production URL: Set `BULL_BOARD_URL` environment variable
-
-### Manually Retrying Failed Jobs
-
-**Via Bull Board UI:**
-
-1. Navigate to the failed queue (e.g., "digest-queue")
-2. Click on the "Failed" tab
-3. Select jobs to retry (or use "Retry All")
-4. Click "Retry" button
-5. Monitor the "Active" tab for progress
-
-**Via CLI (if implemented):**
-
-```bash
-# Retry specific job
-bun run retry-job --queue=digest-queue --job=job-123
-
-# Retry all failed jobs in queue
-bun run retry-all --queue=digest-queue
+FailureDetector (singleton)
+└── Suit les echecs par worker → declenche des alertes REPEATED_FAILURES
 ```
 
-### Common Alert Scenarios
+## Exports
 
-#### Scenario 1: JOB_FAILURE - OpenAI API Timeout
+```typescript
+// Core
+export { AlertManager } from "./alert-manager";
+export { FailureDetector } from "./failure-detector";
 
-**Alert Context:**
-- Type: JOB_FAILURE
-- Severity: CRITICAL
-- Error: "OpenAI API timeout"
+// Providers
+export { DiscordProvider, type DiscordProviderConfig } from "./providers/discord-provider";
+export { EmailProvider, type EmailProviderConfig } from "./providers/email-provider";
 
-**Response:**
-1. Check OpenAI API status: https://status.openai.com
-2. If API is down: Wait for recovery, jobs will auto-retry
-3. If API is up: Check network connectivity and firewall rules
-4. Review `OPENAI_API_KEY` environment variable
-5. Manually retry failed jobs via Bull Board after resolving
+// Templates
+export { CriticalAlertEmail, type CriticalAlertEmailProps } from "./templates/critical-alert-email";
 
-**Prevention:**
-- Increase timeout configuration if network is slow
-- Add circuit breaker pattern for API calls
-- Consider fallback to different model or provider
+// Types (depuis ./types/index.ts)
+export { AlertType, AlertSeverity, AlertSchema, AlertError, type Alert, type AlertProvider, type AlertSendResult };
+```
 
-#### Scenario 2: REPEATED_FAILURES - High Failure Rate
+## Alert Types
 
-**Alert Context:**
-- Type: REPEATED_FAILURES
-- Severity: HIGH
-- Context: 5+ failures in 10 minutes
+| Type | Severite | Description |
+|------|----------|-------------|
+| `WORKER_DOWN` | CRITICAL | Un worker ne repond plus |
+| `REPEATED_FAILURES` | HIGH | Echecs repetes detectes par le `FailureDetector` |
+| `RATE_LIMIT` | HIGH | Limite de taux depassee |
+| `JOB_FAILURE` | CRITICAL | Un job a echoue apres tous ses retries |
 
-**Response:**
-1. Open Bull Board and check the "Failed" tab
-2. Identify common error pattern across failures
-3. Check if it's a systematic issue (API down, database unavailable, configuration error)
-4. If systematic: Fix root cause before retrying
-5. If transient: Wait for auto-recovery and monitor
+## Alert Severity
 
-**Prevention:**
-- Implement better error handling for known transient errors
-- Add health checks before job processing
-- Increase retry delays for temporary issues
+| Niveau | Description |
+|--------|-------------|
+| `CRITICAL` | Action immediate requise |
+| `HIGH` | Reponse necessaire dans les heures |
+| `MEDIUM` | Peut attendre le prochain jour ouvre |
+| `LOW` | Informationnel |
 
-#### Scenario 3: RATE_LIMIT - API Quota Exceeded
+## Providers
 
-**Alert Context:**
-- Type: RATE_LIMIT
-- Severity: HIGH
-- Error: HTTP 429
-- Context: Includes retry-after header
+### DiscordProvider
 
-**Response:**
-1. Check the retry-after duration in alert context
-2. Wait for the specified duration before retrying
-3. Review API usage patterns and optimize if possible
-4. Consider upgrading API tier if hitting limits frequently
+Envoie les alertes via webhook Discord avec des embeds colores selon la severite.
 
-**Prevention:**
-- Implement rate limiting in application code
-- Add backoff strategy for API calls
-- Monitor API usage and set up proactive alerts before limits
+```typescript
+const discord = new DiscordProvider({
+  webhookUrl: "https://discord.com/api/webhooks/xxx/yyy",
+  username: "LEC Alerts",    // optionnel
+  avatarUrl: "https://...",  // optionnel
+});
+```
 
-#### Scenario 4: WORKER_DOWN - Worker Not Responding
+### EmailProvider
 
-**Alert Context:**
-- Type: WORKER_DOWN
-- Severity: CRITICAL
-- Context: No heartbeat in 10 minutes
+Envoie les alertes par email via SMTP avec des templates React Email.
 
-**Response:**
-1. Check if worker process is running: `ps aux | grep worker`
-2. Check worker logs for crash or errors
-3. Restart worker if crashed: `bun run worker:restart`
-4. Check system resources (CPU, memory, disk)
-5. Review recent deployments or configuration changes
+```typescript
+const email = new EmailProvider({
+  host: "smtp.example.com",
+  port: 587,
+  auth: { user: "alerts@example.com", pass: "secret" },
+  from: "alerts@example.com",
+  to: ["admin@example.com"],
+});
+```
 
-**Prevention:**
-- Implement process monitoring (PM2, systemd)
-- Add automatic restart on crash
-- Set up resource alerts before critical levels
+### Creer un provider custom
 
-### Alert Escalation Matrix
+```typescript
+import type { AlertProvider, Alert, AlertSendResult, AlertError } from "@lec-packages/alert";
+import type { Result } from "@lec-packages/ddd-tools";
 
-| Severity | Response Time | Escalation Path |
-|----------|---------------|-----------------|
-| CRITICAL | < 5 minutes | On-call engineer → Engineering lead → CTO |
-| HIGH | < 1 hour | On-call engineer → Engineering lead |
-| MEDIUM | < 4 hours | Assigned engineer |
-| LOW | Next business day | Backlog |
+class SlackProvider implements AlertProvider {
+  readonly name = "slack";
 
-### Post-Incident Review
+  async send(alert: Alert): Promise<Result<AlertSendResult, AlertError>> {
+    // implementation...
+  }
 
-After resolving critical alerts:
+  async sendBatch(alerts: Alert[]): Promise<Result<AlertSendResult, AlertError>> {
+    // implementation...
+  }
 
-1. **Document**: Record what happened, root cause, and resolution
-2. **Analyze**: Review why the issue wasn't caught earlier
-3. **Improve**: Update alerts, monitoring, or error handling
-4. **Share**: Communicate learnings with the team
+  async verify(): Promise<boolean> {
+    // verification...
+  }
 
-## Related Packages
+  close(): void {
+    // cleanup...
+  }
+}
+```
 
-- `@lec/core` - Core types and configuration
-- `@lec/email` - Email sending infrastructure
-- `@lec/logger` - Structured logging
+## FailureDetector
+
+Detecte automatiquement les pannes repetees et declenche des alertes `REPEATED_FAILURES` quand le seuil est atteint.
+
+```typescript
+import { FailureDetector } from "@lec-packages/alert";
+
+const detector = FailureDetector.getInstance();
+
+// Tracker un echec
+await detector.trackJobFailure("job-123", "digest-worker", "API timeout");
+
+// Alerte REPEATED_FAILURES declenchee automatiquement si :
+// - 5 echecs en 10 minutes (configurable via ALERT_THRESHOLDS)
+```
+
+## Variables d'environnement
+
+| Variable | Description | Defaut |
+|----------|-------------|--------|
+| `ALERT_ENABLED` | Active/desactive les alertes | `true` |
+| `ADMIN_EMAIL` | Email de l'administrateur | - |
+| `SMTP_HOST` | Hote SMTP | - |
+| `SMTP_PORT` | Port SMTP | - |
+| `SMTP_USER` | Utilisateur SMTP | - |
+| `SMTP_PASS` | Mot de passe SMTP | - |
+
+## Dependencies
+
+| Package | Version | Usage |
+|---------|---------|-------|
+| `@lec-packages/ddd-tools` | workspace | `ErrorBase`, `Result` |
+| `nodemailer` | ^7.0.12 | Envoi d'emails SMTP |
+| `@react-email/components` | ^1.0.5 | Templates email |
+| `@react-email/render` | ^2.0.3 | Rendu HTML des templates |
+| `react` | ^19.2.3 | JSX pour les templates |
 
 ## License
 
-Private - Ragnar Project
+MIT

@@ -1,7 +1,7 @@
-# @lec/ddd-tools
+# @lec-packages/ddd-tools
 
-## 2.0.0
+## 1.0.0
 
 ### Major Changes
 
-- f164ca1: Initial release
+- Initial release

@@ -24,7 +24,7 @@ abstract class ValueObject<T> {
 Représente une plage de dates avec validation.
 
 ```typescript
-import { DateRange } from "@lec/ddd-tools";
+import { DateRange } from "@lec-packages/ddd-tools";
 
 const range = DateRange.create({
   from: new Date("2024-01-01"),
@@ -45,7 +45,7 @@ if (range.isOk()) {
 Représente une adresse postale avec validation Zod.
 
 ```typescript
-import { Address } from "@lec/ddd-tools";
+import { Address } from "@lec-packages/ddd-tools";
 
 const address = Address.create({
   street: "12 rue de la Paix",
@@ -64,7 +64,7 @@ if (address.isOk()) {
 Stocke du contenu traduit en plusieurs langues.
 
 ```typescript
-import { LocalizedContent } from "@lec/ddd-tools";
+import { LocalizedContent } from "@lec-packages/ddd-tools";
 
 const content = LocalizedContent.create({
   translations: new Map([
@@ -85,7 +85,7 @@ if (content.isOk()) {
 ## Créer un Value Object custom
 
 ```typescript
-import { ValueObject } from "@lec/ddd-tools";
+import { ValueObject } from "@lec-packages/ddd-tools";
 
 interface MoneyProps {
   amount: number;

@@ -2,14 +2,14 @@
 sidebar_position: 1
 ---
 
-# @lec/alert
+# @lec-packages/alert
 
 Système d'alertes multi-providers pour surveiller les applications en production. Supporte Discord et Email avec détection automatique de pannes répétées.
 
 ## Installation
 
 ```bash
-yarn add @lec/alert
+yarn add @lec-packages/alert
 ```
 
 ## Exports
@@ -21,7 +21,7 @@ import {
   DiscordProvider,
   EmailProvider,
   CriticalAlertEmail,
-} from "@lec/alert";
+} from "@lec-packages/alert";
 ```
 
 ## Architecture
@@ -44,7 +44,7 @@ FailureDetector (singleton)
 | `@react-email/components` | ^1.0.5 | Templates email |
 | `@react-email/render` | ^2.0.3 | Rendu HTML des templates |
 | `react` | ^19.2.3 | JSX pour les templates |
-| `@lec/ddd-tools` | workspace | Classe `ErrorBase` |
+| `@lec-packages/ddd-tools` | workspace | Classe `ErrorBase` |
 
 ## Variables d'environnement
 
@@ -60,7 +60,7 @@ FailureDetector (singleton)
 ## Quick Start
 
 ```typescript
-import { AlertManager, DiscordProvider, EmailProvider } from "@lec/alert";
+import { AlertManager, DiscordProvider, EmailProvider } from "@lec-packages/alert";
 
 // Initialiser
 AlertManager.initialize();

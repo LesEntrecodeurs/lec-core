@@ -4,12 +4,12 @@ sidebar_position: 1
 
 # Publication npm avec Changesets
 
-Ce guide explique comment les packages `@lec/*` sont automatiquement publiés sur npm via [Changesets](https://github.com/changesets/changesets) et GitHub Actions.
+Ce guide explique comment les packages `@lec-packages/*` sont automatiquement publiés sur npm via [Changesets](https://github.com/changesets/changesets) et GitHub Actions.
 
 ## Vue d'ensemble
 
 ```
-code + yarn changeset → push main → PR auto créée → merge PR → publié sur npm
+code + yarn changeset → push main → CI build → publié sur npm
 ```
 
 Changesets gère le **versioning sémantique** (semver) et la **publication** des packages du monorepo. Chaque changement qui impacte un package publié doit être accompagné d'un fichier changeset décrivant le type de modification.
@@ -18,8 +18,8 @@ Changesets gère le **versioning sémantique** (semver) et la **publication** de
 
 | Package | npm | Accès |
 |---------|-----|-------|
-| `@lec/ddd-tools` | [@lec/ddd-tools](https://www.npmjs.com/package/@lec/ddd-tools) | Public |
-| `@lec/alert` | [@lec/alert](https://www.npmjs.com/package/@lec/alert) | Public |
+| `@lec-packages/ddd-tools` | [@lec-packages/ddd-tools](https://www.npmjs.com/package/@lec-packages/ddd-tools) | Public |
+| `@lec-packages/alert` | [@lec-packages/alert](https://www.npmjs.com/package/@lec-packages/alert) | Public |
 
 ## Workflow de développement
 
@@ -55,7 +55,7 @@ Cela crée un fichier Markdown dans `.changeset/` :
 
 ```markdown
 ---
-"@lec/alert": minor
+"@lec-packages/alert": minor
 ---
 
 Ajout du provider Slack pour les alertes
@@ -74,23 +74,14 @@ Pousse ta branche et merge sur `main` comme d'habitude.
 
 ## Ce qui se passe en CI
 
-Le workflow GitHub Actions (`.github/workflows/release.yml`) se déclenche à chaque push sur `main` et exécute deux scénarios possibles :
+Le workflow GitHub Actions (`.github/workflows/release.yml`) se déclenche à chaque push sur `main` qui touche `packages/`, `.changeset/`, `package.json` ou `yarn.lock`. Les modifications dans `apps/docs/` ne déclenchent **pas** le workflow.
 
-### Scénario A : Des changesets sont en attente
+Le workflow exécute les étapes suivantes :
 
-Si des fichiers `.changeset/*.md` (hors `README.md`) existent, le workflow **crée ou met à jour une PR "Version Packages"** qui :
-
-- Bump les versions dans les `package.json` concernés
-- Met à jour les fichiers `CHANGELOG.md` de chaque package
-- Supprime les fichiers changeset consommés
-- Accumule les changesets si tu push plusieurs fois avant de merger
-
-### Scénario B : Aucun changeset en attente
-
-Si la PR "Version Packages" vient d'être mergée (plus de changesets), le workflow :
-
-1. **Build** tous les packages (`yarn turbo build lint`)
-2. **Publie** sur npm les packages dont la version a changé (`yarn changeset publish`)
+1. **Install** les dépendances
+2. **Build & Lint** tous les packages (`yarn turbo build lint`)
+3. **Version** — applique les changesets en attente (`yarn changeset version`) : bump les versions et met à jour les `CHANGELOG.md`
+4. **Publish** — publie sur npm les packages dont la version a changé (`yarn changeset publish`)
 
 ## Versioning sémantique
 
@@ -121,7 +112,7 @@ Choisis le bon type de bump selon la nature du changement :
 
 ### Organisation npm
 
-Les packages sont scopés sous `@lec`, ce qui nécessite une [organisation npm `lec`](https://www.npmjs.com/org/lec). Les packages sont configurés en accès **public** via `publishConfig` dans chaque `package.json`.
+Les packages sont scopés sous `@lec-packages`, ce qui nécessite une [organisation npm `lec-packages`](https://www.npmjs.com/org/lec-packages). Les packages sont configurés en accès **public** via `publishConfig` dans chaque `package.json`.
 
 ## Commandes utiles
 
@@ -143,7 +134,7 @@ yarn changeset publish
 
 ### Je ne veux pas publier, juste modifier du code interne
 
-Si ton changement ne touche que des packages internes (configs, outils de dev, docs), tu n'as pas besoin de créer un changeset. La CI build et lint quand même, mais ne crée pas de PR de version.
+Si ton changement ne touche que des packages internes (configs, outils de dev, docs), tu n'as pas besoin de créer un changeset. La CI ne se déclenche même pas si seuls les fichiers dans `apps/docs/` sont modifiés.
 
 ### J'ai oublié de créer un changeset
 
@@ -152,6 +143,6 @@ Pas de problème. Crée-le après coup et push-le sur `main`. Il sera pris en co
 ### Comment publier un package pour la première fois ?
 
 Le premier `yarn changeset publish` gère la publication initiale. Assure-toi que :
-- L'organisation `@lec` existe sur npm
+- L'organisation `@lec-packages` existe sur npm
 - Le `NPM_TOKEN` est configuré dans les secrets GitHub
 - Le `package.json` contient `"publishConfig": { "access": "public" }`

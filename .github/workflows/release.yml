@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'packages/**'
+      - '.changeset/**'
+      - 'package.json'
+      - 'yarn.lock'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 

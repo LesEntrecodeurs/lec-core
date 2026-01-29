@@ -35,7 +35,7 @@ interface DiscordProviderConfig {
 ### Utilisation
 
 ```typescript
-import { DiscordProvider } from "@lec/alert";
+import { DiscordProvider } from "@lec-packages/alert";
 
 const discord = new DiscordProvider({
   webhookUrl: "https://discord.com/api/webhooks/xxx/yyy",
@@ -74,7 +74,7 @@ interface EmailProviderConfig {
 ### Utilisation
 
 ```typescript
-import { EmailProvider } from "@lec/alert";
+import { EmailProvider } from "@lec-packages/alert";
 
 const email = new EmailProvider({
   host: "smtp.example.com",
@@ -109,7 +109,7 @@ Le template inclut :
 ## Créer un provider custom
 
 ```typescript
-import type { AlertProvider, Alert } from "@lec/alert";
+import type { AlertProvider, Alert } from "@lec-packages/alert";
 
 class SlackProvider implements AlertProvider {
   readonly name = "slack";
