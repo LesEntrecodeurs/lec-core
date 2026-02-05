@@ -1,7 +1,11 @@
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
 const sidebars: SidebarsConfig = {
-	guidesSidebar: ["guides/ajouter-un-package", "guides/publication-npm"],
+	guidesSidebar: [
+		"guides/ajouter-un-package",
+		"guides/integration-nestjs-alert",
+		"guides/publication-npm",
+	],
 	packagesSidebar: [
 		"intro",
 		{

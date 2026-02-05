@@ -1,7 +1,7 @@
 // Alert system exports
 
 // Core alert manager (singleton)
-export { AlertManager } from "./alert-manager";
+export { AlertManager, type MultiProviderResult } from "./alert-manager";
 
 // Failure detection
 export { FailureDetector } from "./failure-detector";
@@ -19,3 +19,17 @@ export {
 	CriticalAlertEmail,
 	type CriticalAlertEmailProps,
 } from "./templates/critical-alert-email";
+
+// Types
+export {
+	ALERT_DEBOUNCE_WINDOW,
+	ALERT_ENABLED,
+	ALERT_THRESHOLDS,
+	type Alert,
+	AlertError,
+	type AlertProvider,
+	AlertSchema,
+	type AlertSendResult,
+	AlertSeverity,
+	AlertType,
+} from "./types";
