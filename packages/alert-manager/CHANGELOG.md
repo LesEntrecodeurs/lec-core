@@ -1,5 +1,11 @@
 # @lec-packages/alert
 
+## 1.1.1
+
+### Patch Changes
+
+- 3083243: Export missing types from package index
+
 ## 1.1.0
 
 ### Minor Changes
