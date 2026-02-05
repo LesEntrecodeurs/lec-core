@@ -1,5 +1,11 @@
 # @lec-packages/alert
 
+## 1.1.2
+
+### Patch Changes
+
+- 90f5ad4: Export missing types
+
 ## 1.1.1
 
 ### Patch Changes
