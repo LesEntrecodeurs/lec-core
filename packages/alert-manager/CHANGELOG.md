@@ -1,5 +1,16 @@
 # @lec-packages/alert
 
+## 2.0.0
+
+### Major Changes
+
+- 5849c58: Init
+
+### Patch Changes
+
+- Updated dependencies [5849c58]
+  - @lec-packages/ddd-tools@2.0.0
+
 ## 1.1.3
 
 ### Patch Changes
