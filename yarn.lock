@@ -3757,7 +3757,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@lec-packages/alert@workspace:packages/alert-manager"
   dependencies:
-    "@lec-packages/ddd-tools": "workspace:*"
+    "@lec-packages/ddd-tools": "workspace:^"
     "@lec-packages/tsup-config": "workspace:*"
     "@lec-packages/typescript-config": "workspace:*"
     "@react-email/components": "npm:^1.0.5"
@@ -3772,7 +3772,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@lec-packages/ddd-tools@workspace:*, @lec-packages/ddd-tools@workspace:packages/ddd-tools":
+"@lec-packages/ddd-tools@workspace:^, @lec-packages/ddd-tools@workspace:packages/ddd-tools":
   version: 0.0.0-use.local
   resolution: "@lec-packages/ddd-tools@workspace:packages/ddd-tools"
   dependencies:
