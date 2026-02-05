@@ -1,5 +1,11 @@
 # @lec-packages/alert
 
+## 1.1.3
+
+### Patch Changes
+
+- 76a0f99: Fix npm publishing: use workspace:^ for proper version resolution
+
 ## 1.1.2
 
 ### Patch Changes
