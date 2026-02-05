@@ -108,7 +108,24 @@ Choisis le bon type de bump selon la nature du changement :
 | Secret | Description |
 |--------|-------------|
 | `GITHUB_TOKEN` | Fourni automatiquement par GitHub Actions |
-| `NPM_TOKEN` | Token npm de type **Automation** (évite le 2FA en CI) |
+| `NPM_TOKEN` | Token npm **Granular Access Token** avec "Bypass 2FA" activé |
+
+### Configuration du token npm
+
+npm exige le 2FA pour publier sur le scope `@lec-packages`. Pour la CI, il faut un token avec bypass :
+
+1. Va sur https://www.npmjs.com/settings/tokens
+2. Clique **"Generate New Token"** → **"Granular Access Token"**
+3. Configure :
+   - **Token name** : `github-actions-publish`
+   - **Expiration** : 90 jours (max)
+   - **Bypass two-factor authentication** : ✅ Coché
+   - **Packages and scopes** : `Read and write` sur `@lec-packages`
+   - **Organizations** : `lec-packages` avec `Read and write`
+4. Copie le token généré
+5. Ajoute-le dans GitHub : Settings → Secrets → `NPM_TOKEN`
+
+> **Note** : Le token expire tous les 90 jours. Pense à le renouveler.
 
 ### Organisation npm
 
@@ -129,6 +146,50 @@ yarn changeset version
 # Publier manuellement (fait automatiquement en CI)
 yarn changeset publish
 ```
+
+## Publication manuelle
+
+Si la CI échoue ou si tu dois publier manuellement :
+
+### Prérequis
+
+1. **2FA activé** sur ton compte npm (obligatoire)
+2. Connecté via `npm login`
+
+### Étapes
+
+```bash
+# 1. Build les packages
+yarn build
+
+# 2. Publier ddd-tools (si modifié)
+cd packages/ddd-tools
+npm publish --access public
+
+# 3. Publier alert (si modifié)
+cd ../alert-manager
+npm publish --access public
+```
+
+npm te demandera ton code 2FA (via security key ou authenticator app).
+
+### Dépendances workspace
+
+**Important** : Les dépendances entre packages publiés doivent utiliser des **versions npm**, pas `workspace:*`.
+
+```json
+// ❌ Mauvais - ne fonctionne pas quand publié sur npm
+"dependencies": {
+  "@lec-packages/ddd-tools": "workspace:^"
+}
+
+// ✅ Bon - fonctionne partout
+"dependencies": {
+  "@lec-packages/ddd-tools": "^1.0.1"
+}
+```
+
+Les dépendances `workspace:*` vers des packages **non publiés** (tsup-config, typescript-config) restent en `workspace:*` dans `devDependencies`.
 
 ## FAQ
 
