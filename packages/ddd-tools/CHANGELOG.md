@@ -1,5 +1,11 @@
 # @lec-packages/ddd-tools
 
+## 2.0.0
+
+### Major Changes
+
+- 5849c58: Init
+
 ## 1.1.0
 
 ### Minor Changes
