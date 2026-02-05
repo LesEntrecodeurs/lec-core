@@ -186,7 +186,7 @@ await detector.trackJobFailure("job-123", "digest-worker", "API timeout");
 
 | Package | Version | Usage |
 |---------|---------|-------|
-| `@lec-packages/ddd-tools` | workspace | `ErrorBase`, `Result` |
+| `@lec-packages/ddd-tools` | ^1.0.1 | `ErrorBase`, `Result` |
 | `nodemailer` | ^7.0.12 | Envoi d'emails SMTP |
 | `@react-email/components` | ^1.0.5 | Templates email |
 | `@react-email/render` | ^2.0.3 | Rendu HTML des templates |
