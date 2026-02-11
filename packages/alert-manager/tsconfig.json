@@ -1,5 +1,5 @@
 {
-	"extends": "@lec-packages/typescript-config/base.json",
+	"extends": "@lec-core/typescript-config/base.json",
 	"compilerOptions": {
 		"module": "ESNext",
 		"moduleResolution": "node",

@@ -1,5 +1,5 @@
 {
-	"name": "@lec-packages/tsup-config",
+	"name": "@lec-core/tsup-config",
 	"version": "0.0.1",
 	"private": true,
 	"files": [
