@@ -30,7 +30,7 @@ class Command {
 ## Utilisation
 
 ```typescript
-import { Command, type CommandProps } from "@lec-packages/ddd-tools";
+import { Command, type CommandProps } from "@lec-core/ddd-tools";
 
 interface CreateUserPayload {
   email: string;

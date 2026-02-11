@@ -63,7 +63,7 @@ abstract class ErrorBase extends Error {
 ## Utilisation
 
 ```typescript
-import { NotFoundError, Result, Err } from "@lec-packages/ddd-tools";
+import { NotFoundError, Result, Err } from "@lec-core/ddd-tools";
 
 function findUser(id: string): Result<User, NotFoundError> {
   const user = db.find(id);

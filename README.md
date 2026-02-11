@@ -1,13 +1,13 @@
 # LEC Internal Packages
 
-Monorepo des packages internes **Les Entrecodeurs**, publiés sous le scope `@lec-packages` sur npm.
+Monorepo des packages internes **Les Entrecodeurs**, publiés sous le scope `@lec-core` sur npm.
 
 ## Packages
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| `@lec-packages/ddd-tools` | Primitives DDD : Entity, ValueObject, Result, Command, Repository | [![npm](https://img.shields.io/npm/v/@lec-packages/ddd-tools)](https://www.npmjs.com/package/@lec-packages/ddd-tools) |
-| `@lec-packages/alert` | Alertes multi-providers (Discord, Email) avec detection de pannes | [![npm](https://img.shields.io/npm/v/@lec-packages/alert)](https://www.npmjs.com/package/@lec-packages/alert) |
+| `@lec-core/ddd-tools` | Primitives DDD : Entity, ValueObject, Result, Command, Repository | [![npm](https://img.shields.io/npm/v/@lec-core/ddd-tools)](https://www.npmjs.com/package/@lec-core/ddd-tools) |
+| `@lec-core/alert` | Alertes multi-providers (Discord, Email) avec detection de pannes | [![npm](https://img.shields.io/npm/v/@lec-core/alert)](https://www.npmjs.com/package/@lec-core/alert) |
 
 ## Prérequis
 
@@ -45,7 +45,7 @@ Créer `packages/mon-package/package.json` :
 
 ```json
 {
-  "name": "@lec-packages/mon-package",
+  "name": "@lec-core/mon-package",
   "version": "0.0.1",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -58,8 +58,8 @@ Créer `packages/mon-package/package.json` :
     "dev": "tsup --watch"
   },
   "devDependencies": {
-    "@lec-packages/tsup-config": "*",
-    "@lec-packages/typescript-config": "*",
+    "@lec-core/tsup-config": "*",
+    "@lec-core/typescript-config": "*",
     "tsup": "^8.5.1",
     "typescript": "~5.9.3"
   },
@@ -75,7 +75,7 @@ Créer `packages/mon-package/tsconfig.json` :
 
 ```json
 {
-  "extends": "@lec-packages/typescript-config/base.json",
+  "extends": "@lec-core/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["es2021"],
     "outDir": "./dist",
@@ -91,7 +91,7 @@ Créer `packages/mon-package/tsconfig.json` :
 Créer `packages/mon-package/tsup.config.ts` :
 
 ```ts
-import config from "@lec-packages/tsup-config";
+import config from "@lec-core/tsup-config";
 
 export default config;
 ```
@@ -102,7 +102,7 @@ Créer `packages/mon-package/src/index.ts` :
 
 ```ts
 export function hello(): string {
-  return "Hello from @lec-packages/mon-package";
+  return "Hello from @lec-core/mon-package";
 }
 ```
 
@@ -115,7 +115,7 @@ yarn install
 ### 7. Vérifier le build
 
 ```bash
-yarn build --filter=@lec-packages/mon-package
+yarn build --filter=@lec-core/mon-package
 ```
 
 ## Publier sur npm

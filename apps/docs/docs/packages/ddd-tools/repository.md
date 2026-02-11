@@ -20,7 +20,7 @@ abstract class RepositoryPort<E extends Entity<unknown>> {
 ## Utilisation
 
 ```typescript
-import { RepositoryPort, Entity } from "@lec-packages/ddd-tools";
+import { RepositoryPort, Entity } from "@lec-core/ddd-tools";
 
 interface UserProps {
   email: string;

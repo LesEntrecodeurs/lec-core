@@ -1,5 +1,5 @@
 {
-	"name": "@lec-packages/internal",
+	"name": "lec-core",
 	"private": true,
 	"scripts": {
 		"build": "turbo run build",

@@ -10,7 +10,7 @@ const sidebars: SidebarsConfig = {
 		"intro",
 		{
 			type: "category",
-			label: "@lec-packages/ddd-tools",
+			label: "@lec-core/ddd-tools",
 			items: [
 				"packages/ddd-tools/overview",
 				"packages/ddd-tools/entity",
@@ -24,7 +24,7 @@ const sidebars: SidebarsConfig = {
 		},
 		{
 			type: "category",
-			label: "@lec-packages/alert",
+			label: "@lec-core/alert",
 			items: [
 				"packages/alert-manager/overview",
 				"packages/alert-manager/alert-manager",

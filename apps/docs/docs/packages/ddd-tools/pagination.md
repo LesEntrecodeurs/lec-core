@@ -67,7 +67,7 @@ interface OrderBy {
 ## Utilisation
 
 ```typescript
-import { Paginated, type PaginatedQuery, FilterOp } from "@lec-packages/ddd-tools";
+import { Paginated, type PaginatedQuery, FilterOp } from "@lec-core/ddd-tools";
 
 // Construire une requête paginée
 const query: PaginatedQuery = {

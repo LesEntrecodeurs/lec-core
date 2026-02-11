@@ -1,4 +1,4 @@
-import { ErrorBase, type Result } from "@lec-packages/ddd-tools";
+import { ErrorBase, type Result } from "@lec-core/ddd-tools";
 import { z } from "zod";
 
 /**

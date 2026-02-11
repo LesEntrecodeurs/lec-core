@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Publication npm avec Changesets
 
-Ce guide explique comment les packages `@lec-packages/*` sont automatiquement publiés sur npm via [Changesets](https://github.com/changesets/changesets) et GitHub Actions.
+Ce guide explique comment les packages `@lec-core/*` sont automatiquement publiés sur npm via [Changesets](https://github.com/changesets/changesets) et GitHub Actions.
 
 ## Vue d'ensemble
 
@@ -18,8 +18,8 @@ Changesets gère le **versioning sémantique** (semver) et la **publication** de
 
 | Package | npm | Accès |
 |---------|-----|-------|
-| `@lec-packages/ddd-tools` | [@lec-packages/ddd-tools](https://www.npmjs.com/package/@lec-packages/ddd-tools) | Public |
-| `@lec-packages/alert` | [@lec-packages/alert](https://www.npmjs.com/package/@lec-packages/alert) | Public |
+| `@lec-core/ddd-tools` | [@lec-core/ddd-tools](https://www.npmjs.com/package/@lec-core/ddd-tools) | Public |
+| `@lec-core/alert` | [@lec-core/alert](https://www.npmjs.com/package/@lec-core/alert) | Public |
 
 ## Workflow de développement
 
@@ -55,7 +55,7 @@ Cela crée un fichier Markdown dans `.changeset/` :
 
 ```markdown
 ---
-"@lec-packages/alert": minor
+"@lec-core/alert": minor
 ---
 
 Ajout du provider Slack pour les alertes
@@ -112,7 +112,7 @@ Choisis le bon type de bump selon la nature du changement :
 
 ### Configuration du token npm
 
-npm exige le 2FA pour publier sur le scope `@lec-packages`. Pour la CI, il faut un token avec bypass :
+npm exige le 2FA pour publier sur le scope `@lec-core`. Pour la CI, il faut un token avec bypass :
 
 1. Va sur https://www.npmjs.com/settings/tokens
 2. Clique **"Generate New Token"** → **"Granular Access Token"**
@@ -120,8 +120,8 @@ npm exige le 2FA pour publier sur le scope `@lec-packages`. Pour la CI, il faut 
    - **Token name** : `github-actions-publish`
    - **Expiration** : 90 jours (max)
    - **Bypass two-factor authentication** : ✅ Coché
-   - **Packages and scopes** : `Read and write` sur `@lec-packages`
-   - **Organizations** : `lec-packages` avec `Read and write`
+   - **Packages and scopes** : `Read and write` sur `@lec-core`
+   - **Organizations** : `lec-core` avec `Read and write`
 4. Copie le token généré
 5. Ajoute-le dans GitHub : Settings → Secrets → `NPM_TOKEN`
 
@@ -129,7 +129,7 @@ npm exige le 2FA pour publier sur le scope `@lec-packages`. Pour la CI, il faut 
 
 ### Organisation npm
 
-Les packages sont scopés sous `@lec-packages`, ce qui nécessite une [organisation npm `lec-packages`](https://www.npmjs.com/org/lec-packages). Les packages sont configurés en accès **public** via `publishConfig` dans chaque `package.json`.
+Les packages sont scopés sous `@lec-core`, ce qui nécessite une [organisation npm `lec-core`](https://www.npmjs.com/org/lec-core). Les packages sont configurés en accès **public** via `publishConfig` dans chaque `package.json`.
 
 ## Commandes utiles
 
@@ -180,12 +180,12 @@ npm te demandera ton code 2FA (via security key ou authenticator app).
 ```json
 // ❌ Mauvais - ne fonctionne pas quand publié sur npm
 "dependencies": {
-  "@lec-packages/ddd-tools": "workspace:^"
+  "@lec-core/ddd-tools": "workspace:^"
 }
 
 // ✅ Bon - fonctionne partout
 "dependencies": {
-  "@lec-packages/ddd-tools": "^1.0.1"
+  "@lec-core/ddd-tools": "^1.0.1"
 }
 ```
 
@@ -204,6 +204,6 @@ Pas de problème. Crée-le après coup et push-le sur `main`. Il sera pris en co
 ### Comment publier un package pour la première fois ?
 
 Le premier `yarn changeset publish` gère la publication initiale. Assure-toi que :
-- L'organisation `@lec-packages` existe sur npm
+- L'organisation `@lec-core` existe sur npm
 - Le `NPM_TOKEN` est configuré dans les secrets GitHub
 - Le `package.json` contient `"publishConfig": { "access": "public" }`

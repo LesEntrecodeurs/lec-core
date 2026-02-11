@@ -27,7 +27,7 @@ abstract class Entity<T, U extends string | number = string> {
 ## Utilisation
 
 ```typescript
-import { Entity } from "@lec-packages/ddd-tools";
+import { Entity } from "@lec-core/ddd-tools";
 
 interface UserProps {
   email: string;

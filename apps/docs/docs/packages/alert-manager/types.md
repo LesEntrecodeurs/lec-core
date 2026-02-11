@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Types
 
-Types et enums exportés par `@lec-packages/alert`.
+Types et enums exportés par `@lec-core/alert`.
 
 ## AlertType
 

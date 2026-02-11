@@ -29,7 +29,7 @@ type Result<T, E> = Ok<T, E> | Err<T, E>;
 ## Utilisation
 
 ```typescript
-import { Result, Ok, Err } from "@lec-packages/ddd-tools";
+import { Result, Ok, Err } from "@lec-core/ddd-tools";
 
 function divide(a: number, b: number): Result<number, string> {
   if (b === 0) {

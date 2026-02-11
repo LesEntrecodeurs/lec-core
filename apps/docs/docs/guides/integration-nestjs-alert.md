@@ -4,12 +4,12 @@ sidebar_position: 3
 
 # Intégrer Alert Manager dans NestJS
 
-Ce guide explique comment intégrer le package `@lec-packages/alert` dans un projet [NestJS](https://nestjs.com/) pour envoyer des alertes Discord et/ou Email depuis ton application.
+Ce guide explique comment intégrer le package `@lec-core/alert` dans un projet [NestJS](https://nestjs.com/) pour envoyer des alertes Discord et/ou Email depuis ton application.
 
 ## Installation
 
 ```bash
-yarn add @lec-packages/alert @lec-packages/ddd-tools
+yarn add @lec-core/alert @lec-core/ddd-tools
 ```
 
 ## Créer le module Alert
@@ -26,8 +26,8 @@ import {
   DiscordProvider,
   EmailProvider,
   FailureDetector,
-} from "@lec-packages/alert";
-import { AlertType, AlertSeverity } from "@lec-packages/alert";
+} from "@lec-core/alert";
+import { AlertType, AlertSeverity } from "@lec-core/alert";
 
 @Injectable()
 export class AlertService implements OnModuleInit, OnModuleDestroy {
@@ -132,7 +132,7 @@ Injecte `AlertService` dans n'importe quel service ou controller :
 
 ```ts
 import { Injectable } from "@nestjs/common";
-import { AlertType, AlertSeverity } from "@lec-packages/alert";
+import { AlertType, AlertSeverity } from "@lec-core/alert";
 import { AlertService } from "../alert/alert.service";
 
 @Injectable()

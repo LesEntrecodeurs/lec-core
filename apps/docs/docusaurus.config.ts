@@ -78,11 +78,11 @@ const config: Config = {
 					title: "Packages",
 					items: [
 						{
-							label: "@lec-packages/ddd-tools",
+							label: "@lec-core/ddd-tools",
 							to: "/docs/packages/ddd-tools/overview",
 						},
 						{
-							label: "@lec-packages/alert",
+							label: "@lec-core/alert",
 							to: "/docs/packages/alert-manager/overview",
 						},
 					],

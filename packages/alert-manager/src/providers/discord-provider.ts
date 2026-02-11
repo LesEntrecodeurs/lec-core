@@ -1,4 +1,4 @@
-import { Err, Ok, type Result } from "@lec-packages/ddd-tools";
+import { Err, Ok, type Result } from "@lec-core/ddd-tools";
 import {
 	type Alert,
 	AlertError,

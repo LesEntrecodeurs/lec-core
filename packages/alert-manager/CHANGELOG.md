@@ -1,4 +1,4 @@
-# @lec-packages/alert
+# @lec-core/alert
 
 ## 2.0.0
 
@@ -9,7 +9,7 @@
 ### Patch Changes
 
 - Updated dependencies [5849c58]
-  - @lec-packages/ddd-tools@2.0.0
+  - @lec-core/ddd-tools@2.0.0
 
 ## 1.1.3
 
@@ -38,7 +38,7 @@
 ### Patch Changes
 
 - Updated dependencies [3a22d6a]
-  - @lec-packages/ddd-tools@1.1.0
+  - @lec-core/ddd-tools@1.1.0
 
 ## 1.0.0
 

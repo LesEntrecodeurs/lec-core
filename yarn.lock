@@ -3818,22 +3818,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@lec-packages/internal@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@lec-packages/internal@workspace:."
-  dependencies:
-    "@biomejs/biome": "npm:2.3.11"
-    "@changesets/cli": "npm:^2.29.8"
-    "@commitlint/cli": "npm:^20.3.1"
-    "@commitlint/config-conventional": "npm:^20.3.1"
-    "@manypkg/cli": "npm:^0.25.1"
-    husky: "npm:^9.1.7"
-    lint-staged: "npm:^16.2.7"
-    turbo: "npm:^2.7.4"
-    typescript: "npm:~5.9.3"
-  languageName: unknown
-  linkType: soft
-
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.5
   resolution: "@leichtgewicht/ip-codec@npm:2.0.5"
@@ -9835,6 +9819,22 @@ __metadata:
   checksum: 10c0/5257781e10791ef8462eb1cbe5e48e3cda7692486f2a775265d6f5216cc088960c62f138163b8df0dcf2119d18673bfe7b050d6b41543d92a7b7ac90e4eb1e8b
   languageName: node
   linkType: hard
+
+"lec-core@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "lec-core@workspace:."
+  dependencies:
+    "@biomejs/biome": "npm:2.3.11"
+    "@changesets/cli": "npm:^2.29.8"
+    "@commitlint/cli": "npm:^20.3.1"
+    "@commitlint/config-conventional": "npm:^20.3.1"
+    "@manypkg/cli": "npm:^0.25.1"
+    husky: "npm:^9.1.7"
+    lint-staged: "npm:^16.2.7"
+    turbo: "npm:^2.7.4"
+    typescript: "npm:~5.9.3"
+  languageName: unknown
+  linkType: soft
 
 "leven@npm:^3.1.0":
   version: 3.1.0

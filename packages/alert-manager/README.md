@@ -1,11 +1,11 @@
-# @lec-packages/alert
+# @lec-core/alert
 
 Systeme d'alertes multi-providers pour surveiller les applications en production. Supporte Discord et Email (SMTP via Nodemailer + React Email) avec detection automatique de pannes repetees.
 
 ## Installation
 
 ```bash
-yarn add @lec-packages/alert
+yarn add @lec-core/alert
 ```
 
 ## Quick Start
@@ -17,7 +17,7 @@ import {
   EmailProvider,
   AlertType,
   AlertSeverity,
-} from "@lec-packages/alert";
+} from "@lec-core/alert";
 
 // Initialiser
 AlertManager.initialize();
@@ -131,8 +131,8 @@ const email = new EmailProvider({
 ### Creer un provider custom
 
 ```typescript
-import type { AlertProvider, Alert, AlertSendResult, AlertError } from "@lec-packages/alert";
-import type { Result } from "@lec-packages/ddd-tools";
+import type { AlertProvider, Alert, AlertSendResult, AlertError } from "@lec-core/alert";
+import type { Result } from "@lec-core/ddd-tools";
 
 class SlackProvider implements AlertProvider {
   readonly name = "slack";
@@ -160,7 +160,7 @@ class SlackProvider implements AlertProvider {
 Detecte automatiquement les pannes repetees et declenche des alertes `REPEATED_FAILURES` quand le seuil est atteint.
 
 ```typescript
-import { FailureDetector } from "@lec-packages/alert";
+import { FailureDetector } from "@lec-core/alert";
 
 const detector = FailureDetector.getInstance();
 
@@ -186,7 +186,7 @@ await detector.trackJobFailure("job-123", "digest-worker", "API timeout");
 
 | Package | Version | Usage |
 |---------|---------|-------|
-| `@lec-packages/ddd-tools` | ^1.0.1 | `ErrorBase`, `Result` |
+| `@lec-core/ddd-tools` | ^1.0.1 | `ErrorBase`, `Result` |
 | `nodemailer` | ^7.0.12 | Envoi d'emails SMTP |
 | `@react-email/components` | ^1.0.5 | Templates email |
 | `@react-email/render` | ^2.0.3 | Rendu HTML des templates |

@@ -1,4 +1,4 @@
-# @lec-packages/ddd-tools
+# @lec-core/ddd-tools
 
 ## 2.0.0
 

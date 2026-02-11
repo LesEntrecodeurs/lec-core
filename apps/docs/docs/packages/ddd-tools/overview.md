@@ -2,14 +2,14 @@
 sidebar_position: 1
 ---
 
-# @lec-packages/ddd-tools
+# @lec-core/ddd-tools
 
 Boîte à outils TypeScript pour le **Domain-Driven Design**. Fournit les primitives de base pour construire des domaines métier type-safe.
 
 ## Installation
 
 ```bash
-yarn add @lec-packages/ddd-tools
+yarn add @lec-core/ddd-tools
 ```
 
 ## Exports
@@ -21,7 +21,7 @@ import {
   Result, Ok, Err,
   RepositoryPort,
   Paginated, PaginatedQuery,
-} from "@lec-packages/ddd-tools";
+} from "@lec-core/ddd-tools";
 
 // Domain layer
 import {
@@ -30,7 +30,7 @@ import {
   DateRange,
   Address,
   LocalizedContent,
-} from "@lec-packages/ddd-tools";
+} from "@lec-core/ddd-tools";
 
 // Errors
 import {
@@ -39,7 +39,7 @@ import {
   ConflictError,
   EntityValidationError,
   // ...
-} from "@lec-packages/ddd-tools";
+} from "@lec-core/ddd-tools";
 ```
 
 ## Dépendances
