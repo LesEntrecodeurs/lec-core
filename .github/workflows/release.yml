@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'packages/**'
-      - '.changeset/**'
-      - 'package.json'
-      - 'yarn.lock'
+      - "packages/**"
+      - ".changeset/**"
+      - "package.json"
+      - "yarn.lock"
   workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install Dependencies
         run: yarn install --mode=skip-build
@@ -51,9 +51,6 @@ jobs:
             git commit -m "chore(release): version packages"
             git push
           fi
-
-      - name: Configure npm
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
 
       - name: Publish to npm
         run: yarn changeset publish

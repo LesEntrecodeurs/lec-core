@@ -22,14 +22,12 @@
 		"tsup": "^8.5.1",
 		"typescript": "latest"
 	},
-	"publishConfig": {
-		"access": "public"
-	},
 	"dependencies": {
 		"@lec-core/ddd-tools": "^1.0.1",
 		"@react-email/components": "^1.0.5",
 		"@react-email/render": "^2.0.3",
 		"nodemailer": "^7.0.12",
-		"react": "^19.2.3"
+		"react": "^19.2.3",
+		"zod": "^4.3.6"
 	}
 }
