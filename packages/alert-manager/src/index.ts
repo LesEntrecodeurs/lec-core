@@ -1,12 +1,19 @@
-export { AlertManager, type MultiProviderResult } from "./alert-manager";
+export {
+	AlertManager,
+	type MultiProviderResult,
+	type ProviderSendOptions,
+	type SendAlertOptions,
+} from "./alert-manager";
 
 export { FailureDetector } from "./failure-detector";
 export { AlertManagerModule } from "./nestjs/alert-manager.module";
 export { AlertManagerService } from "./nestjs/alert-manager.service";
 export type { AlertManagerModuleAsyncOptions } from "./nestjs/interfaces";
 export {
+	type DiscordMentions,
 	DiscordProvider,
 	type DiscordProviderConfig,
+	type DiscordSendOptions,
 } from "./providers/discord-provider";
 export {
 	EmailProvider,

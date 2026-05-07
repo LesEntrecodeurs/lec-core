@@ -4,7 +4,39 @@ import {
 	AlertError,
 	type AlertProvider,
 	type AlertSendResult,
+	AlertSeverity,
 } from "../types";
+
+/**
+ * Mentions to apply to a Discord alert.
+ *
+ * Mentions are placed in the `content` field of the webhook payload
+ * (mentions inside embeds do not trigger notifications) and the
+ * `allowed_mentions` field is set explicitly to bypass webhook
+ * default restrictions.
+ */
+export interface DiscordMentions {
+	/** Discord user IDs (snowflakes) → rendered as <@id> */
+	users?: string[];
+	/** Discord role IDs (snowflakes) → rendered as <@&id> */
+	roles?: string[];
+	/** Render @everyone (notifies the whole server) */
+	everyone?: boolean;
+	/** Render @here (notifies online members of the channel) */
+	here?: boolean;
+}
+
+/**
+ * Per-send options for the DiscordProvider.
+ */
+export interface DiscordSendOptions {
+	/**
+	 * Override the static `mentionsBySeverity` config for this send.
+	 * The override fully replaces the static config — passing
+	 * `mentions: {}` is a valid way to opt out of static mentions.
+	 */
+	mentions?: DiscordMentions;
+}
 
 /**
  * Discord provider configuration
@@ -16,6 +48,12 @@ export interface DiscordProviderConfig {
 	username?: string;
 	/** Bot avatar URL (optional) */
 	avatarUrl?: string;
+	/**
+	 * Static mentions per severity. Used when no per-send override
+	 * is provided. For batched alerts, the highest severity wins
+	 * (CRITICAL > HIGH > MEDIUM > LOW).
+	 */
+	mentionsBySeverity?: Partial<Record<AlertSeverity, DiscordMentions>>;
 	/** Retry configuration */
 	retry?: {
 		maxAttempts?: number;
@@ -49,9 +87,20 @@ const SEVERITY_ICONS: Record<string, string> = {
 };
 
 /**
+ * Severity ranking used to resolve mentions for batched alerts.
+ * Higher = more critical.
+ */
+const SEVERITY_RANK: Record<AlertSeverity, number> = {
+	[AlertSeverity.CRITICAL]: 4,
+	[AlertSeverity.HIGH]: 3,
+	[AlertSeverity.MEDIUM]: 2,
+	[AlertSeverity.LOW]: 1,
+};
+
+/**
  * Discord alert provider using webhooks
  */
-export class DiscordProvider implements AlertProvider {
+export class DiscordProvider implements AlertProvider<DiscordSendOptions> {
 	readonly name = "discord";
 
 	private readonly config: DiscordProviderConfig;
@@ -67,12 +116,16 @@ export class DiscordProvider implements AlertProvider {
 		};
 	}
 
-	async send(alert: Alert): Promise<Result<AlertSendResult, AlertError>> {
-		return this.sendBatch([alert]);
+	async send(
+		alert: Alert,
+		options?: DiscordSendOptions,
+	): Promise<Result<AlertSendResult, AlertError>> {
+		return this.sendBatch([alert], options);
 	}
 
 	async sendBatch(
 		alerts: Alert[],
+		options?: DiscordSendOptions,
 	): Promise<Result<AlertSendResult, AlertError>> {
 		const firstAlert = alerts[0];
 
@@ -86,7 +139,8 @@ export class DiscordProvider implements AlertProvider {
 		}
 
 		const embeds = alerts.map((alert) => this.createEmbed(alert));
-		const payload = this.createPayload(embeds);
+		const mentions = this.resolveMentions(alerts, options);
+		const payload = this.createPayload(embeds, mentions);
 
 		return this.sendWithRetry(payload, firstAlert.type);
 	}
@@ -150,12 +204,48 @@ export class DiscordProvider implements AlertProvider {
 		};
 	}
 
-	private createPayload(embeds: DiscordEmbed[]): DiscordWebhookPayload {
-		return {
+	private createPayload(
+		embeds: DiscordEmbed[],
+		mentions: DiscordMentions | undefined,
+	): DiscordWebhookPayload {
+		const payload: DiscordWebhookPayload = {
 			username: this.config.username ?? "Alert Bot",
 			avatar_url: this.config.avatarUrl,
 			embeds: embeds.slice(0, 10), // Discord allows max 10 embeds per message
 		};
+
+		if (mentions) {
+			const content = renderMentionsContent(mentions);
+			if (content) {
+				payload.content = content;
+				payload.allowed_mentions = buildAllowedMentions(mentions);
+			}
+		}
+
+		return payload;
+	}
+
+	private resolveMentions(
+		alerts: Alert[],
+		options: DiscordSendOptions | undefined,
+	): DiscordMentions | undefined {
+		// Per-alert override (even an empty object explicitly opts out
+		// of the static config).
+		if (options?.mentions !== undefined) {
+			return options.mentions;
+		}
+
+		const map = this.config.mentionsBySeverity;
+		if (!map) {
+			return undefined;
+		}
+
+		const severity = highestSeverity(alerts);
+		if (!severity) {
+			return undefined;
+		}
+
+		return map[severity];
 	}
 
 	private async sendWithRetry(
@@ -242,6 +332,58 @@ export class DiscordProvider implements AlertProvider {
 }
 
 /**
+ * Pick the highest-severity alert from a batch (CRITICAL > HIGH > MEDIUM > LOW).
+ * Returns undefined for an empty batch.
+ */
+function highestSeverity(alerts: Alert[]): AlertSeverity | undefined {
+	let best: AlertSeverity | undefined;
+	let bestRank = 0;
+	for (const alert of alerts) {
+		const rank = SEVERITY_RANK[alert.severity] ?? 0;
+		if (rank > bestRank) {
+			bestRank = rank;
+			best = alert.severity;
+		}
+	}
+	return best;
+}
+
+/**
+ * Build the `content` string for mentions. Order: @everyone, @here,
+ * roles, users. Returns an empty string if nothing is requested.
+ */
+function renderMentionsContent(mentions: DiscordMentions): string {
+	const parts: string[] = [];
+	if (mentions.everyone) parts.push("@everyone");
+	if (mentions.here) parts.push("@here");
+	if (mentions.roles) {
+		for (const id of mentions.roles) parts.push(`<@&${id}>`);
+	}
+	if (mentions.users) {
+		for (const id of mentions.users) parts.push(`<@${id}>`);
+	}
+	return parts.join(" ");
+}
+
+/**
+ * Build the `allowed_mentions` object that whitelists exactly what
+ * we want Discord to actually notify. Required because webhooks may
+ * silently drop pings that aren't explicitly allowed.
+ */
+function buildAllowedMentions(
+	mentions: DiscordMentions,
+): DiscordAllowedMentions {
+	const allowed: DiscordAllowedMentions = {
+		users: mentions.users ?? [],
+		roles: mentions.roles ?? [],
+	};
+	if (mentions.everyone || mentions.here) {
+		allowed.parse = ["everyone"];
+	}
+	return allowed;
+}
+
+/**
  * Discord embed types
  */
 interface DiscordEmbed {
@@ -262,9 +404,16 @@ interface DiscordEmbedField {
 	inline: boolean;
 }
 
+interface DiscordAllowedMentions {
+	parse?: Array<"everyone" | "users" | "roles">;
+	users?: string[];
+	roles?: string[];
+}
+
 interface DiscordWebhookPayload {
 	username?: string;
 	avatar_url?: string;
 	content?: string;
 	embeds: DiscordEmbed[];
+	allowed_mentions?: DiscordAllowedMentions;
 }

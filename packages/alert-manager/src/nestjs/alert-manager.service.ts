@@ -9,6 +9,7 @@ import {
 	AlertManager,
 	type AlertManagerConfig,
 	type MultiProviderResult,
+	type SendAlertOptions,
 } from "../alert-manager";
 import { FailureDetector } from "../failure-detector";
 import type { Alert, AlertError } from "../types";
@@ -31,14 +32,14 @@ export class AlertManagerService implements OnModuleInit, OnModuleDestroy {
 
 	async sendAlert(
 		alert: Alert,
-		options?: { providers?: string[] },
+		options?: SendAlertOptions,
 	): Promise<Result<MultiProviderResult, AlertError>> {
 		return AlertManager.getInstance().sendAlert(alert, options);
 	}
 
 	async sendAlerts(
 		alerts: Alert[],
-		options?: { providers?: string[] },
+		options?: SendAlertOptions,
 	): Promise<Result<MultiProviderResult, AlertError>> {
 		return AlertManager.getInstance().sendAlerts(alerts, options);
 	}

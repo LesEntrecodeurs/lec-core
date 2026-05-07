@@ -97,21 +97,31 @@ export interface AlertSendResult {
 }
 
 /**
- * Interface that all alert providers must implement
+ * Interface that all alert providers must implement.
+ *
+ * The generic `TOptions` parameter lets a provider declare its own
+ * per-send options shape. Defaults to `void` so providers without
+ * options can simply `implements AlertProvider`.
  */
-export interface AlertProvider {
+export interface AlertProvider<TOptions = void> {
 	/** Unique name of the provider */
 	readonly name: string;
 
 	/**
 	 * Send a single alert
 	 */
-	send(alert: Alert): Promise<Result<AlertSendResult, AlertError>>;
+	send(
+		alert: Alert,
+		options?: TOptions,
+	): Promise<Result<AlertSendResult, AlertError>>;
 
 	/**
 	 * Send multiple alerts
 	 */
-	sendBatch(alerts: Alert[]): Promise<Result<AlertSendResult, AlertError>>;
+	sendBatch(
+		alerts: Alert[],
+		options?: TOptions,
+	): Promise<Result<AlertSendResult, AlertError>>;
 
 	/**
 	 * Verify the provider connection is working
