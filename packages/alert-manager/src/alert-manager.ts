@@ -1,4 +1,5 @@
 import { Err, Ok, type Result } from "@lec-core/ddd-tools";
+import type { DiscordSendOptions } from "./providers/discord-provider";
 import {
 	type Alert,
 	AlertError,
@@ -7,11 +8,29 @@ import {
 } from "./types";
 
 /**
+ * Per-provider send options. Each provider reads its own slot
+ * by `provider.name`. Slots are typed so callers get autocomplete.
+ */
+export interface ProviderSendOptions {
+	discord?: DiscordSendOptions;
+}
+
+/**
+ * Options accepted by `sendAlert` / `sendAlerts`.
+ */
+export interface SendAlertOptions {
+	/** Restrict the send to specific provider names. */
+	providers?: string[];
+	/** Per-provider options forwarded to the matching provider. */
+	providerOptions?: ProviderSendOptions;
+}
+
+/**
  * Configuration for AlertManager
  */
 export interface AlertManagerConfig {
 	/** Alert providers to use */
-	providers: AlertProvider[];
+	providers: AlertProvider<any>[];
 	/** Alert thresholds configuration */
 	thresholds?: {
 		/** Number of failures before triggering REPEATED_FAILURES alert */
@@ -86,7 +105,7 @@ const DEFAULT_DEBOUNCE_WINDOW_MS = 5 * 60 * 1000;
 export class AlertManager {
 	private static instance: AlertManager | null = null;
 
-	private readonly providers: Map<string, AlertProvider>;
+	private readonly providers: Map<string, AlertProvider<any>>;
 	private readonly thresholdsConfig: Required<
 		NonNullable<AlertManagerConfig["thresholds"]>
 	>;
@@ -187,14 +206,14 @@ export class AlertManager {
 	/**
 	 * Get a specific provider by name
 	 */
-	getProvider(name: string): AlertProvider | undefined {
+	getProvider(name: string): AlertProvider<any> | undefined {
 		return this.providers.get(name);
 	}
 
 	/**
 	 * Add a new provider at runtime
 	 */
-	addProvider(provider: AlertProvider): void {
+	addProvider(provider: AlertProvider<any>): void {
 		this.providers.set(provider.name, provider);
 		console.info(`AlertManager: added provider "${provider.name}"`);
 	}
@@ -218,7 +237,7 @@ export class AlertManager {
 	 */
 	async sendAlert(
 		alert: Alert,
-		options?: { providers?: string[] },
+		options?: SendAlertOptions,
 	): Promise<Result<MultiProviderResult, AlertError>> {
 		return this.sendAlerts([alert], options);
 	}
@@ -228,7 +247,7 @@ export class AlertManager {
 	 */
 	async sendAlerts(
 		alerts: Alert[],
-		options?: { providers?: string[] },
+		options?: SendAlertOptions,
 	): Promise<Result<MultiProviderResult, AlertError>> {
 		const firstAlert = alerts[0];
 
@@ -260,7 +279,9 @@ export class AlertManager {
 
 		// Send to all providers in parallel
 		const promises = targetProviders.map(async (provider) => {
-			const result = await provider.sendBatch(alerts);
+			const providerOpts =
+				options?.providerOptions?.[provider.name as keyof ProviderSendOptions];
+			const result = await provider.sendBatch(alerts, providerOpts);
 
 			if (result.isOk()) {
 				results.successful.push(result.value);
@@ -325,13 +346,15 @@ export class AlertManager {
 		this.providers.clear();
 	}
 
-	private getTargetProviders(providerNames?: string[]): AlertProvider[] {
+	private getTargetProviders(providerNames?: string[]): AlertProvider<any>[] {
 		if (!providerNames || providerNames.length === 0) {
 			return Array.from(this.providers.values());
 		}
 
 		return providerNames
 			.map((name) => this.providers.get(name))
-			.filter((provider): provider is AlertProvider => provider !== undefined);
+			.filter(
+				(provider): provider is AlertProvider<any> => provider !== undefined,
+			);
 	}
 }
