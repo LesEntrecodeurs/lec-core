@@ -2,14 +2,14 @@
 sidebar_position: 1
 ---
 
-# @lec-core/alert
+# @lec-core/alert-manager
 
 Système d'alertes multi-providers pour surveiller les applications en production. Supporte Discord et Email avec détection automatique de pannes répétées.
 
 ## Installation
 
 ```bash
-yarn add @lec-core/alert
+yarn add @lec-core/alert-manager
 ```
 
 ## Exports
@@ -21,7 +21,7 @@ import {
   DiscordProvider,
   EmailProvider,
   CriticalAlertEmail,
-} from "@lec-core/alert";
+} from "@lec-core/alert-manager";
 ```
 
 ## Architecture
@@ -60,7 +60,7 @@ FailureDetector (singleton)
 ## Quick Start
 
 ```typescript
-import { AlertManager, DiscordProvider, EmailProvider } from "@lec-core/alert";
+import { AlertManager, DiscordProvider, EmailProvider } from "@lec-core/alert-manager";
 
 // Initialiser
 AlertManager.initialize();

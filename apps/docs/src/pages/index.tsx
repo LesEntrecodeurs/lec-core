@@ -42,7 +42,7 @@ const packages: PackageItem[] = [
 		href: "/docs/packages/ddd-tools/overview",
 	},
 	{
-		name: "@lec-core/alert",
+		name: "@lec-core/alert-manager",
 		description:
 			"Systeme d'alertes multi-providers (Discord, Email) avec detection de pannes et templates React Email.",
 		badge: "Infrastructure",

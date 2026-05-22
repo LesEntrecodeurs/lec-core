@@ -7,7 +7,7 @@ Monorepo des packages internes **Les Entrecodeurs**, publiés sous le scope `@le
 | Package | Description | npm |
 |---------|-------------|-----|
 | `@lec-core/ddd-tools` | Primitives DDD : Entity, ValueObject, Result, Command, Repository | [![npm](https://img.shields.io/npm/v/@lec-core/ddd-tools)](https://www.npmjs.com/package/@lec-core/ddd-tools) |
-| `@lec-core/alert` | Alertes multi-providers (Discord, Email) avec detection de pannes | [![npm](https://img.shields.io/npm/v/@lec-core/alert)](https://www.npmjs.com/package/@lec-core/alert) |
+| `@lec-core/alert-manager` | Alertes multi-providers (Discord, Email) avec detection de pannes | [![npm](https://img.shields.io/npm/v/@lec-core/alert-manager)](https://www.npmjs.com/package/@lec-core/alert-manager) |
 
 ## Prérequis
 

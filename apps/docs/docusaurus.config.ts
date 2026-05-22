@@ -82,7 +82,7 @@ const config: Config = {
 							to: "/docs/packages/ddd-tools/overview",
 						},
 						{
-							label: "@lec-core/alert",
+							label: "@lec-core/alert-manager",
 							to: "/docs/packages/alert-manager/overview",
 						},
 					],

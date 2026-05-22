@@ -19,7 +19,7 @@ Changesets gère le **versioning sémantique** (semver) et la **publication** de
 | Package | npm | Accès |
 |---------|-----|-------|
 | `@lec-core/ddd-tools` | [@lec-core/ddd-tools](https://www.npmjs.com/package/@lec-core/ddd-tools) | Public |
-| `@lec-core/alert` | [@lec-core/alert](https://www.npmjs.com/package/@lec-core/alert) | Public |
+| `@lec-core/alert-manager` | [@lec-core/alert-manager](https://www.npmjs.com/package/@lec-core/alert-manager) | Public |
 
 ## Workflow de développement
 
@@ -55,7 +55,7 @@ Cela crée un fichier Markdown dans `.changeset/` :
 
 ```markdown
 ---
-"@lec-core/alert": minor
+"@lec-core/alert-manager": minor
 ---
 
 Ajout du provider Slack pour les alertes

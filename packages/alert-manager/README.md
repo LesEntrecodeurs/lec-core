@@ -1,11 +1,11 @@
-# @lec-core/alert
+# @lec-core/alert-manager
 
 Systeme d'alertes multi-providers pour surveiller les applications en production. Supporte Discord et Email (SMTP via Nodemailer + React Email) avec detection automatique de pannes repetees.
 
 ## Installation
 
 ```bash
-yarn add @lec-core/alert
+yarn add @lec-core/alert-manager
 ```
 
 ## Quick Start
@@ -17,7 +17,7 @@ import {
   EmailProvider,
   AlertType,
   AlertSeverity,
-} from "@lec-core/alert";
+} from "@lec-core/alert-manager";
 
 // Initialiser
 AlertManager.initialize();
@@ -131,7 +131,7 @@ const email = new EmailProvider({
 ### Creer un provider custom
 
 ```typescript
-import type { AlertProvider, Alert, AlertSendResult, AlertError } from "@lec-core/alert";
+import type { AlertProvider, Alert, AlertSendResult, AlertError } from "@lec-core/alert-manager";
 import type { Result } from "@lec-core/ddd-tools";
 
 class SlackProvider implements AlertProvider {
@@ -160,7 +160,7 @@ class SlackProvider implements AlertProvider {
 Detecte automatiquement les pannes repetees et declenche des alertes `REPEATED_FAILURES` quand le seuil est atteint.
 
 ```typescript
-import { FailureDetector } from "@lec-core/alert";
+import { FailureDetector } from "@lec-core/alert-manager";
 
 const detector = FailureDetector.getInstance();
 
