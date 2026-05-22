@@ -24,7 +24,7 @@ const sidebars: SidebarsConfig = {
 		},
 		{
 			type: "category",
-			label: "@lec-core/alert",
+			label: "@lec-core/alert-manager",
 			items: [
 				"packages/alert-manager/overview",
 				"packages/alert-manager/alert-manager",

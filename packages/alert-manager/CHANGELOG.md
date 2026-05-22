@@ -1,4 +1,4 @@
-# @lec-core/alert
+# @lec-core/alert-manager
 
 ## 1.2.0
 

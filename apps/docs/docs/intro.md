@@ -14,14 +14,14 @@ Ce monorepo contient un ensemble de librairies TypeScript modulaires, conçues p
 | Package | Description | Version |
 |---------|-------------|---------|
 | [`@lec-core/ddd-tools`](/docs/packages/ddd-tools/overview) | Primitives Domain-Driven Design : Entity, ValueObject, Result, Command, Repository, Pagination | `1.0.0` |
-| [`@lec-core/alert`](/docs/packages/alert-manager/overview) | Système d'alertes multi-providers avec Discord, Email et détection de pannes | `1.0.0` |
+| [`@lec-core/alert-manager`](/docs/packages/alert-manager/overview) | Système d'alertes multi-providers avec Discord, Email et détection de pannes | `1.0.0` |
 
 ## Architecture du monorepo
 
 ```
 LEC_INTERN_DEV/
 ├── packages/
-│   ├── alert-manager/      → @lec-core/alert
+│   ├── alert-manager/      → @lec-core/alert-manager
 │   ├── ddd-tools/          → @lec-core/ddd-tools
 │   ├── tsup-config/        → @lec-core/tsup-config
 │   └── typescript-config/  → @lec-core/typescript-config
