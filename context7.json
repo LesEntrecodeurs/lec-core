@@ -1,0 +1,23 @@
+{
+	"$schema": "https://context7.com/schema/context7.json",
+	"projectTitle": "LEC Core — @lec-core/ddd-tools & @lec-core/alert-manager",
+	"description": "Packages TypeScript internes Les Entrecodeurs : primitives Domain-Driven Design (Entity, ValueObject, Result, Command, Repository, Pagination, erreurs typées) et système d'alertes multi-providers (Discord, Email/SMTP, détection de pannes, module NestJS).",
+	"folders": ["context7"],
+	"excludeFolders": [
+		"node_modules",
+		"dist",
+		".turbo",
+		".docusaurus",
+		"apps/docs"
+	],
+	"excludeFiles": ["CHANGELOG.md", "yarn.lock", "package-lock.json"],
+	"rules": [
+		"Le scope npm des packages est @lec-core. Le package d'alertes s'installe et s'importe sous le nom @lec-core/alert-manager (et NON @lec-core/alert, nom hérité d'anciens README).",
+		"@lec-core/ddd-tools n'expose pas de barrel par couche : tout (domain, application, errors) s'importe depuis la racine du package : import { Entity, Result, Ok, Err } from \"@lec-core/ddd-tools\".",
+		"La gestion d'erreur suit le pattern Result<T, E> : retourner Ok.of(value) ou Err.of(error) et discriminer avec result.isOk() / result.isErr() avant de lire result.value ou result.error. Ne pas lever d'exception pour les erreurs métier attendues.",
+		"Les Value Objects (Address, DateRange, LocalizedContent) se construisent via leur factory statique .create(props) qui renvoie un Result, jamais via new directement.",
+		"AlertManager est un singleton : appeler AlertManager.initialize({ providers: [...] }) UNE fois au démarrage (au moins un provider est requis), puis AlertManager.getInstance() ensuite. En NestJS, préférer AlertManagerModule.forRoot/forRootAsync + AlertManagerService au lieu d'appeler le singleton à la main.",
+		"EmailProvider attend une config { smtp, fromEmail, toEmail } où smtp est un NodemailerConfig ({ host, port, secure, auth }). Ne pas utiliser l'ancienne forme { host, port, auth, from, to }.",
+		"Un objet Alert requiert toujours les champs type, severity, workerName, timestamp, context et message. context est un Record<string, unknown> obligatoire (utiliser {} si vide)."
+	]
+}
